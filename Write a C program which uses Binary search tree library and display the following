@@ -1,0 +1,324 @@
+Perfect 👍 Let’s solve 5th Slip in full exam format
+(Exact questions + both options + tables + calls)
+
+
+---
+
+✅ 5th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ **Q1) Write a C program which uses Binary search tree library and display the following
+
+Node value at each level
+Count of node at each level
+Total levels in the tree.**
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+// Create node
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+// Insert
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+// Height (levels)
+int height(struct node* root)
+{
+    if(root == NULL)
+        return 0;
+
+    int lh = height(root->left);
+    int rh = height(root->right);
+
+    return (lh > rh ? lh : rh) + 1;
+}
+
+// Print nodes at given level
+void printLevel(struct node* root, int level)
+{
+    if(root == NULL)
+        return;
+
+    if(level == 1)
+        printf("%d ", root->data);
+    else
+    {
+        printLevel(root->left, level-1);
+        printLevel(root->right, level-1);
+    }
+}
+
+// Count nodes at given level
+int countLevel(struct node* root, int level)
+{
+    if(root == NULL)
+        return 0;
+
+    if(level == 1)
+        return 1;
+
+    return countLevel(root->left, level-1) + countLevel(root->right, level-1);
+}
+
+int main()
+{
+    struct node* root = NULL;
+    int n, val, i, h;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d", &val);
+        root = insert(root, val);
+    }
+
+    h = height(root);
+
+    printf("Total Levels = %d\n", h);
+
+    for(i = 1; i <= h; i++)
+    {
+        printf("\nLevel %d: ", i);
+        printLevel(root, i);
+
+        printf("\nNode Count at Level %d = %d\n", i, countLevel(root, i));
+    }
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program for the Implementation of topological sorting algorithm.
+
+
+---
+
+✅ Solution (Topological Sort using DFS)
+
+#include<stdio.h>
+
+int adj[10][10], visited[10], stack[10];
+int n, top = -1;
+
+void dfs(int v)
+{
+    visited[v] = 1;
+
+    for(int i = 0; i < n; i++)
+    {
+        if(adj[v][i] == 1 && !visited[i])
+            dfs(i);
+    }
+
+    stack[++top] = v;
+}
+
+int main()
+{
+    int i, j;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix:\n");
+    for(i = 0; i < n; i++)
+        for(j = 0; j < n; j++)
+            scanf("%d", &adj[i][j]);
+
+    for(i = 0; i < n; i++)
+        visited[i] = 0;
+
+    for(i = 0; i < n; i++)
+        if(!visited[i])
+            dfs(i);
+
+    printf("Topological Order: ");
+    for(i = top; i >= 0; i--)
+        printf("%d ", stack[i]);
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ **Consider the following Entities and their Relationships for Student-Competition Student (sreg_no int ,s_name varchar(20), s_class char(10))
+
+Competition (c_no int ,c_name varchar(20), c_type char(10))**
+
+Relationship between Student and Competition is many to many with descriptive attributes rank and year.
+
+Constraints: Primary Key, c_type should not be null, c_type can be ‘sport’ or ‘academic’.
+
+
+---
+
+❓ Q2) Using above Database Solve the following [10 Marks]
+
+❓ write a function using cursor to accept year and class to display student name, competition name and rank.
+
+
+---
+
+✅ Step 1: Create Tables
+
+CREATE TABLE student (
+    sreg_no INT PRIMARY KEY,
+    s_name VARCHAR(20),
+    s_class CHAR(10)
+);
+
+CREATE TABLE competition (
+    c_no INT PRIMARY KEY,
+    c_name VARCHAR(20),
+    c_type CHAR(10) CHECK (c_type IN ('sport','academic')) NOT NULL
+);
+
+CREATE TABLE student_competition (
+    sreg_no INT,
+    c_no INT,
+    rank INT,
+    year INT,
+    PRIMARY KEY (sreg_no, c_no),
+    FOREIGN KEY (sreg_no) REFERENCES student(sreg_no),
+    FOREIGN KEY (c_no) REFERENCES competition(c_no)
+);
+
+
+---
+
+✅ Function using Cursor
+
+CREATE OR REPLACE FUNCTION get_details(y INT, cls CHAR)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+    cur CURSOR FOR
+        SELECT s.s_name, c.c_name, sc.rank
+        FROM student s
+        JOIN student_competition sc ON s.sreg_no = sc.sreg_no
+        JOIN competition c ON sc.c_no = c.c_no
+        WHERE sc.year = y AND s.s_class = cls;
+BEGIN
+    FOR rec IN cur LOOP
+        RAISE NOTICE 'Student: %, Competition: %, Rank: %',
+                     rec.s_name, rec.c_name, rec.rank;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT get_details(2024, 'TYBSc');
+
+
+---
+
+🔁 OR
+
+❓ Define a trigger before updating a competition table. Raise a notice and display message “competition record is being updated”.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION before_update_comp()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    RAISE NOTICE 'competition record is being updated';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_comp_update
+BEFORE UPDATE ON competition
+FOR EACH ROW
+EXECUTE FUNCTION before_update_comp();
+
+
+---
+
+❓ Write a procedure to accept three numbers from user and find maximum and minimum from it. [5 marks]
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE max_min(a INT, b INT, c INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    max_val INT;
+    min_val INT;
+BEGIN
+    max_val := GREATEST(a, b, c);
+    min_val := LEAST(a, b, c);
+
+    RAISE NOTICE 'Maximum = %, Minimum = %', max_val, min_val;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL max_min(10, 20, 5);
+
+
+---
+
+✅ 5th Slip DONE (exact + both options + full format)
+
+
+---
+
+👉 Next: “6th slip” 👍
