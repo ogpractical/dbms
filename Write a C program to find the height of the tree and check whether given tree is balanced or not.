@@ -1,0 +1,302 @@
+Perfect 👍 Let’s do 4th Slip in full exam format
+(Exact questions + both options + tables + calls)
+
+
+---
+
+✅ 4th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to find the height of the tree and check whether given tree is balanced or not.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+int height(struct node* root)
+{
+    if(root == NULL)
+        return 0;
+
+    int lh = height(root->left);
+    int rh = height(root->right);
+
+    return (lh > rh ? lh : rh) + 1;
+}
+
+int isBalanced(struct node* root)
+{
+    if(root == NULL)
+        return 1;
+
+    int lh = height(root->left);
+    int rh = height(root->right);
+
+    if(abs(lh - rh) <= 1 && isBalanced(root->left) && isBalanced(root->right))
+        return 1;
+
+    return 0;
+}
+
+int main()
+{
+    struct node* root = NULL;
+    int n, val, i;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d", &val);
+        root = insert(root, val);
+    }
+
+    printf("Height = %d\n", height(root));
+
+    if(isBalanced(root))
+        printf("Tree is Balanced\n");
+    else
+        printf("Tree is Not Balanced\n");
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and store it as an adjacency matrix. Implement function to traverse the graph using Depth First Search (DFS) traversal.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+int adj[10][10], visited[10], n;
+
+void dfs(int v)
+{
+    int i;
+    printf("%d ", v);
+    visited[v] = 1;
+
+    for(i = 0; i < n; i++)
+    {
+        if(adj[v][i] == 1 && visited[i] == 0)
+            dfs(i);
+    }
+}
+
+int main()
+{
+    int i, j, e, u, v, start;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+        for(j = 0; j < n; j++)
+            adj[i][j] = 0;
+
+    printf("Enter number of edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        adj[u][v] = 1;
+        adj[v][u] = 1;
+    }
+
+    printf("Enter starting vertex: ");
+    scanf("%d", &start);
+
+    dfs(start);
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Consider the following Entities and their Relationships .
+
+Movies (m_name varchar (25), release_year integer, budget money)
+Actor (a_name char (30), role char (30), charges money, a_address varchar(30))
+Producer (producer_id integer, name char (30), p_address varchar (30))
+
+The relationships are as follows:
+
+Each actor has acted in one or more movies. Each producer has produced many movies and each movie can be produced by more than one producers. Each movie has one or more actors acting in it, in different roles.
+
+
+---
+
+❓ Q2) Using above Database Solve the following [10 Marks]
+
+❓ Write a cursor to pass actor name as input parameter and return total number of movies in which given actor is acting.
+
+
+---
+
+✅ Step 1: Create Tables
+
+CREATE TABLE movies (
+    m_name VARCHAR(25) PRIMARY KEY,
+    release_year INT,
+    budget NUMERIC
+);
+
+CREATE TABLE actor (
+    a_name CHAR(30),
+    role CHAR(30),
+    charges NUMERIC,
+    a_address VARCHAR(30)
+);
+
+CREATE TABLE movie_actor (
+    m_name VARCHAR(25),
+    a_name CHAR(30),
+    PRIMARY KEY (m_name, a_name),
+    FOREIGN KEY (m_name) REFERENCES movies(m_name)
+);
+
+
+---
+
+✅ Function using Cursor
+
+CREATE OR REPLACE FUNCTION count_movies(actor_name VARCHAR)
+RETURNS INT AS
+$$
+DECLARE
+    total INT := 0;
+    rec RECORD;
+    cur CURSOR FOR
+        SELECT m_name FROM movie_actor
+        WHERE a_name = actor_name;
+BEGIN
+    FOR rec IN cur LOOP
+        total := total + 1;
+    END LOOP;
+
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT count_movies('Amitabh');
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before inserting into movie table to check budget. Budget should be minimum 50 lakh. Display appropriate message.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_budget()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.budget < 5000000 THEN
+        RAISE EXCEPTION 'Budget must be at least 50 lakh';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_budget
+BEFORE INSERT ON movies
+FOR EACH ROW
+EXECUTE FUNCTION check_budget();
+
+
+---
+
+❓ Write a procedure to accept a number from user and check the number is positive, negative or zero. [5 marks]
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE check_number(n INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF n > 0 THEN
+        RAISE NOTICE 'Positive Number';
+    ELSIF n < 0 THEN
+        RAISE NOTICE 'Negative Number';
+    ELSE
+        RAISE NOTICE 'Zero';
+    END IF;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL check_number(10);
+
+
+---
+
+✅ 4th Slip DONE (exact + both options + full format)
+
+
+---
+
+👉 Next: “5th slip” 👍
