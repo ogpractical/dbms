@@ -1,0 +1,215 @@
+✅ SECTION I: Data Structures – II
+
+🔹 Q1 (Option 1): BST with operations (Menu Driven in C)
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node {
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int data) {
+    struct node* newnode = (struct node*)malloc(sizeof(struct node));
+    newnode->data = data;
+    newnode->left = newnode->right = NULL;
+    return newnode;
+}
+
+struct node* insert(struct node* root, int data) {
+    if (root == NULL)
+        return create(data);
+
+    if (data < root->data)
+        root->left = insert(root->left, data);
+    else
+        root->right = insert(root->right, data);
+
+    return root;
+}
+
+void inorder(struct node* root) {
+    if (root != NULL) {
+        inorder(root->left);
+        printf("%d ", root->data);
+        inorder(root->right);
+    }
+}
+
+void preorder(struct node* root) {
+    if (root != NULL) {
+        printf("%d ", root->data);
+        preorder(root->left);
+        preorder(root->right);
+    }
+}
+
+void postorder(struct node* root) {
+    if (root != NULL) {
+        postorder(root->left);
+        postorder(root->right);
+        printf("%d ", root->data);
+    }
+}
+
+int main() {
+    struct node* root = NULL;
+    int ch, val;
+
+    while(1) {
+        printf("\n1.Insert\n2.Inorder\n3.Preorder\n4.Postorder\n5.Exit\n");
+        printf("Enter choice: ");
+        scanf("%d",&ch);
+
+        switch(ch) {
+            case 1:
+                printf("Enter value: ");
+                scanf("%d",&val);
+                root = insert(root, val);
+                break;
+            case 2:
+                inorder(root);
+                break;
+            case 3:
+                preorder(root);
+                break;
+            case 4:
+                postorder(root);
+                break;
+            case 5:
+                exit(0);
+        }
+    }
+}
+
+
+---
+
+🔹 Q1 (Option 2): Graph using Adjacency Matrix + Degree
+
+#include<stdio.h>
+
+int main() {
+    int n, i, j;
+    int adj[10][10];
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix:\n");
+    for(i=0;i<n;i++) {
+        for(j=0;j<n;j++) {
+            scanf("%d",&adj[i][j]);
+        }
+    }
+
+    printf("\nAdjacency Matrix:\n");
+    for(i=0;i<n;i++) {
+        for(j=0;j<n;j++) {
+            printf("%d ", adj[i][j]);
+        }
+        printf("\n");
+    }
+
+    for(i=0;i<n;i++) {
+        int indegree=0, outdegree=0;
+
+        for(j=0;j<n;j++) {
+            outdegree += adj[i][j];
+            indegree += adj[j][i];
+        }
+
+        printf("Vertex %d: Indegree=%d Outdegree=%d Total=%d\n",
+               i, indegree, outdegree, indegree+outdegree);
+    }
+
+    return 0;
+}
+
+
+---
+
+✅ SECTION II: DBMS – II
+
+🔹 Table Creation
+
+CREATE TABLE Project (
+    pno INT PRIMARY KEY,
+    pname VARCHAR(30) NOT NULL,
+    ptype VARCHAR(20),
+    duration INT CHECK (duration > 0)
+);
+
+CREATE TABLE Employee (
+    eno INT PRIMARY KEY,
+    ename VARCHAR(20),
+    qualification VARCHAR(15),
+    joining_date DATE
+);
+
+CREATE TABLE Works_On (
+    eno INT,
+    pno INT,
+    start_date DATE,
+    no_of_hours_worked INT,
+    PRIMARY KEY (eno, pno),
+    FOREIGN KEY (eno) REFERENCES Employee(eno),
+    FOREIGN KEY (pno) REFERENCES Project(pno)
+);
+
+
+---
+
+🔹 Q2 (1) Stored Function
+
+DELIMITER $$
+
+CREATE FUNCTION count_projects(eid INT)
+RETURNS INT
+DETERMINISTIC
+BEGIN
+    DECLARE total INT;
+    SELECT COUNT(*) INTO total
+    FROM Works_On
+    WHERE eno = eid;
+
+    RETURN total;
+END $$
+
+DELIMITER ;
+
+
+---
+
+🔹 OR Trigger
+
+DELIMITER $$
+
+CREATE TRIGGER check_duration
+BEFORE INSERT ON Project
+FOR EACH ROW
+BEGIN
+    IF NEW.duration <= 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Duration must be greater than zero';
+    END IF;
+END $$
+
+DELIMITER ;
+
+
+---
+
+🔹 Q2 (2) Procedure (Addition, Subtraction, Multiplication)
+
+DELIMITER $$
+
+CREATE PROCEDURE operations(IN a INT, IN b INT, IN c INT)
+BEGIN
+    SELECT (a + b + c) AS Addition,
+           (a - b - c) AS Subtraction,
+           (a * b * c) AS Multiplication;
+END $$
+
+DELIMITER ;
