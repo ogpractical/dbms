@@ -1,0 +1,304 @@
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to total no. nodes and total no. of leaf nodes in a Binary Search Tree
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+int countNodes(struct node* root)
+{
+    if(root == NULL)
+        return 0;
+
+    return 1 + countNodes(root->left) + countNodes(root->right);
+}
+
+int countLeaf(struct node* root)
+{
+    if(root == NULL)
+        return 0;
+
+    if(root->left == NULL && root->right == NULL)
+        return 1;
+
+    return countLeaf(root->left) + countLeaf(root->right);
+}
+
+int main()
+{
+    struct node* root = NULL;
+    int n, val, i;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d", &val);
+        root = insert(root, val);
+    }
+
+    printf("Total Nodes = %d\n", countNodes(root));
+    printf("Leaf Nodes = %d\n", countLeaf(root));
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph. Create and display adjacency list also print indegree, outdegree and total degree of all vertex of graph.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+
+struct node* adj[10];
+
+void addEdge(int u, int v)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->vertex = v;
+    n->next = adj[u];
+    adj[u] = n;
+}
+
+int main()
+{
+    int n, e, u, v, i;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+        adj[i] = NULL;
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        addEdge(u, v);
+        addEdge(v, u);
+    }
+
+    // Display adjacency list
+    for(i = 0; i < n; i++)
+    {
+        printf("%d -> ", i);
+        struct node* temp = adj[i];
+        while(temp)
+        {
+            printf("%d ", temp->vertex);
+            temp = temp->next;
+        }
+        printf("\n");
+    }
+
+    // Degree calculation
+    for(i = 0; i < n; i++)
+    {
+        int indeg = 0, outdeg = 0;
+
+        struct node* temp = adj[i];
+        while(temp)
+        {
+            outdeg++;
+            temp = temp->next;
+        }
+
+        for(int j = 0; j < n; j++)
+        {
+            struct node* t = adj[j];
+            while(t)
+            {
+                if(t->vertex == i)
+                    indeg++;
+                t = t->next;
+            }
+        }
+
+        printf("Vertex %d: Indegree=%d Outdegree=%d Total=%d\n",
+                i, indeg, outdeg, indeg+outdeg);
+    }
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Consider the following Entities and their Relationships
+
+Person (pno integer, pname varchar (20), birthdate date, income money)
+Area (aname varchar (20), area_type varchar (5))
+
+An area can have one or more persons living in it, but a person belongs to exactly one area.
+
+Constraints: Primary Key, area_type can be either ‘urban’ or ‘rural’.
+
+
+---
+
+❓ Q2) Using above Database Solve the following [10 Marks]
+
+❓ Write a stored function to print total number of persons of a particular area. Accept area name as input parameter.
+
+
+---
+
+✅ Step 1: Create Tables
+
+CREATE TABLE area (
+    aname VARCHAR(20) PRIMARY KEY,
+    area_type VARCHAR(5) CHECK (area_type IN ('urban','rural'))
+);
+
+CREATE TABLE person (
+    pno INT PRIMARY KEY,
+    pname VARCHAR(20),
+    birthdate DATE,
+    income NUMERIC,
+    aname VARCHAR(20),
+    FOREIGN KEY (aname) REFERENCES area(aname)
+);
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION count_persons(area_name VARCHAR)
+RETURNS INT AS
+$$
+DECLARE
+    total INT;
+BEGIN
+    SELECT COUNT(*) INTO total
+    FROM person
+    WHERE aname = area_name;
+
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT count_persons('Khar');
+
+
+---
+
+🔁 OR
+
+❓ Write a stored function to print sum of income of person living in “ ” area type. (Accept area type as input parameter). Display appropriate message for invalid area type.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION sum_income(a_type VARCHAR)
+RETURNS NUMERIC AS
+$$
+DECLARE
+    total NUMERIC;
+BEGIN
+    IF a_type NOT IN ('urban','rural') THEN
+        RAISE EXCEPTION 'Invalid area type';
+    END IF;
+
+    SELECT SUM(income) INTO total
+    FROM person p
+    JOIN area a ON p.aname = a.aname
+    WHERE a.area_type = a_type;
+
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT sum_income('urban');
+
+
+---
+
+❓ Write a procedure to accept two numbers from user and display division of two numbers. Use raise to display error messages for division by zero error. [5 marks]
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE divide_nums(a INT, b INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF b = 0 THEN
+        RAISE EXCEPTION 'Division by zero not allowed';
+    END IF;
+
+    RAISE NOTICE 'Division = %', a / b;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL divide_nums(10, 2);
