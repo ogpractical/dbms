@@ -1,0 +1,374 @@
+Perfect 👍 here is your 9th Slip (exact wording + full answers)
+
+
+---
+
+✅ 9th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to implement a hash table using separate chaining with linked lists with following operation.
+
+Insert a key
+
+Search a key
+
+Display the hash table
+
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+#define SIZE 10
+
+struct node
+{
+    int data;
+    struct node* next;
+};
+
+struct node* table[SIZE];
+
+// Hash function
+int hash(int key)
+{
+    return key % SIZE;
+}
+
+// Insert
+void insert(int key)
+{
+    int index = hash(key);
+
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = key;
+    n->next = table[index];
+    table[index] = n;
+}
+
+// Search
+void search(int key)
+{
+    int index = hash(key);
+    struct node* temp = table[index];
+
+    while(temp)
+    {
+        if(temp->data == key)
+        {
+            printf("Key %d found at index %d\n", key, index);
+            return;
+        }
+        temp = temp->next;
+    }
+
+    printf("Key not found\n");
+}
+
+// Display
+void display()
+{
+    for(int i = 0; i < SIZE; i++)
+    {
+        printf("%d -> ", i);
+        struct node* temp = table[i];
+
+        while(temp)
+        {
+            printf("%d -> ", temp->data);
+            temp = temp->next;
+        }
+        printf("NULL\n");
+    }
+}
+
+int main()
+{
+    int choice, key;
+
+    for(int i = 0; i < SIZE; i++)
+        table[i] = NULL;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Display 4.Exit\n");
+        scanf("%d", &choice);
+
+        switch(choice)
+        {
+            case 1:
+                scanf("%d", &key);
+                insert(key);
+                break;
+
+            case 2:
+                scanf("%d", &key);
+                search(key);
+                break;
+
+            case 3:
+                display();
+                break;
+
+            case 4:
+                exit(0);
+        }
+    }
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program to count node at each level and Node value at each level.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+int height(struct node* root)
+{
+    if(root == NULL)
+        return 0;
+
+    int lh = height(root->left);
+    int rh = height(root->right);
+
+    return (lh > rh ? lh : rh) + 1;
+}
+
+void printLevel(struct node* root, int level)
+{
+    if(root == NULL)
+        return;
+
+    if(level == 1)
+        printf("%d ", root->data);
+    else
+    {
+        printLevel(root->left, level-1);
+        printLevel(root->right, level-1);
+    }
+}
+
+int countLevel(struct node* root, int level)
+{
+    if(root == NULL)
+        return 0;
+
+    if(level == 1)
+        return 1;
+
+    return countLevel(root->left, level-1) +
+           countLevel(root->right, level-1);
+}
+
+int main()
+{
+    struct node* root = NULL;
+    int n, val, i, h;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d", &val);
+        root = insert(root, val);
+    }
+
+    h = height(root);
+
+    for(i = 1; i <= h; i++)
+    {
+        printf("\nLevel %d: ", i);
+        printLevel(root, i);
+
+        printf("\nCount = %d\n", countLevel(root, i));
+    }
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+STUDENT (sreg_no, name, class)
+COMPETITION (c_no, name, c_type)
+STUDENT_COMPETITION (sreg_no, c_no, rank, year, prize)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE student (
+    sreg_no INT PRIMARY KEY,
+    name CHAR(30),
+    class CHAR(10)
+);
+
+CREATE TABLE competition (
+    c_no INT PRIMARY KEY,
+    name CHAR(20),
+    c_type CHAR(15)
+);
+
+CREATE TABLE student_competition (
+    sreg_no INT,
+    c_no INT,
+    rank INT,
+    year INT,
+    prize INT,
+    PRIMARY KEY (sreg_no, c_no),
+    FOREIGN KEY (sreg_no) REFERENCES student(sreg_no),
+    FOREIGN KEY (c_no) REFERENCES competition(c_no)
+);
+
+
+---
+
+🔹 Q2) Define a trigger before updating a competition table. Raise a notice and display message “competition record is being updated”.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION before_update_comp()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    RAISE NOTICE 'competition record is being updated';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update
+BEFORE UPDATE ON competition
+FOR EACH ROW
+EXECUTE FUNCTION before_update_comp();
+
+
+---
+
+🔁 OR
+
+❓ Write a function using cursor which accepts a name of student and returns the total no of prizes won by that student in the year 2020.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION total_prizes(sname VARCHAR)
+RETURNS INT AS
+$$
+DECLARE
+    total INT := 0;
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT sc.prize
+        FROM student s
+        JOIN student_competition sc ON s.sreg_no = sc.sreg_no
+        WHERE s.name = sname AND sc.year = 2020
+    LOOP
+        total := total + rec.prize;
+    END LOOP;
+
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT total_prizes('Omkar');
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to accept two numbers from user and display division of two numbers use raise to display divided by zero exception messages.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE divide(a INT, b INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF b = 0 THEN
+        RAISE EXCEPTION 'Division by zero not allowed';
+    END IF;
+
+    RAISE NOTICE 'Division = %', a / b;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL divide(10, 2);
+
+
+---
+
+✅ 9th Slip DONE (exact + both options + full correct)
+
+
+---
+
+👉 If you want: I can give most repeated programs / last-day revision notes 👍
