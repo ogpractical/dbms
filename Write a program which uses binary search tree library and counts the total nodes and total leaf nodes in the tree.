@@ -1,0 +1,322 @@
+Got it 👍 I’ll label it properly.
+
+
+---
+
+✅ 11th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a program which uses binary search tree library and counts the total nodes and total leaf nodes in the tree.
+
+int count(T) – returns the total number of nodes from BST
+
+int countLeaf(T) – returns the total number of leaf nodes from BST
+
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+int count(struct node* root)
+{
+    if(root == NULL)
+        return 0;
+
+    return 1 + count(root->left) + count(root->right);
+}
+
+int countLeaf(struct node* root)
+{
+    if(root == NULL)
+        return 0;
+
+    if(root->left == NULL && root->right == NULL)
+        return 1;
+
+    return countLeaf(root->left) + countLeaf(root->right);
+}
+
+int main()
+{
+    struct node* root = NULL;
+    int n, val, i;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d", &val);
+        root = insert(root, val);
+    }
+
+    printf("Total Nodes = %d\n", count(root));
+    printf("Leaf Nodes = %d\n", countLeaf(root));
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and store it as an adjacency list. Implement function to traverse the graph using Breadth First Search (BFS) traversal.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+
+struct node* adj[10];
+int visited[10], queue[10];
+int front = -1, rear = -1;
+
+void addEdge(int u, int v)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->vertex = v;
+    n->next = adj[u];
+    adj[u] = n;
+}
+
+void bfs(int start)
+{
+    queue[++rear] = start;
+    visited[start] = 1;
+
+    while(front != rear)
+    {
+        int v = queue[++front];
+        printf("%d ", v);
+
+        struct node* temp = adj[v];
+        while(temp)
+        {
+            if(!visited[temp->vertex])
+            {
+                queue[++rear] = temp->vertex;
+                visited[temp->vertex] = 1;
+            }
+            temp = temp->next;
+        }
+    }
+}
+
+int main()
+{
+    int n, e, u, v, i, start;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        adj[i] = NULL;
+        visited[i] = 0;
+    }
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        addEdge(u, v);
+        addEdge(v, u);
+    }
+
+    printf("Enter starting vertex: ");
+    scanf("%d", &start);
+
+    bfs(start);
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+Student (rollno, s_name, class)
+Subject (scode, subject_name)
+Student_Subject (rollno, scode, marks)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE student (
+    rollno INT PRIMARY KEY,
+    s_name VARCHAR(20),
+    class VARCHAR(10)
+);
+
+CREATE TABLE subject (
+    scode INT PRIMARY KEY,
+    subject_name VARCHAR(20)
+);
+
+CREATE TABLE student_subject (
+    rollno INT,
+    scode INT,
+    marks INT,
+    PRIMARY KEY (rollno, scode),
+    FOREIGN KEY (rollno) REFERENCES student(rollno),
+    FOREIGN KEY (scode) REFERENCES subject(scode)
+);
+
+
+---
+
+🔹 Q2) Write a stored function using cursor to calculate total marks of each student and display it.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION total_marks()
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT rollno, SUM(marks) AS total
+        FROM student_subject
+        GROUP BY rollno
+    LOOP
+        RAISE NOTICE 'Roll No: %, Total Marks: %',
+                     rec.rollno, rec.total;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT total_marks();
+
+
+---
+
+🔁 OR
+
+❓ Define a trigger before deleting a student record from student table. Raise a notice and display message “student record is being deleted”.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION before_delete_student()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    RAISE NOTICE 'student record is being deleted';
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_delete
+BEFORE DELETE ON student
+FOR EACH ROW
+EXECUTE FUNCTION before_delete_student();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to accept value of n and find sum and average of first n number.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE sum_avg(n INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    i INT;
+    s INT := 0;
+    avg NUMERIC;
+BEGIN
+    FOR i IN 1..n LOOP
+        s := s + i;
+    END LOOP;
+
+    avg := s / n;
+
+    RAISE NOTICE 'Sum = %, Average = %', s, avg;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL sum_avg(5);
+
+
+---
+
+✅ 11th Slip DONE (properly labeled + complete)
+
+
+---
+
+👉 If you want: I can now give IMP programs list (most repeated) 👍
