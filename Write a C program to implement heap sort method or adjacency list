@@ -1,0 +1,311 @@
+Perfect 👍 here is your 19th Slip (exact wording + full answers)
+
+
+---
+
+✅ 19th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to implement heap sort method.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+void heapify(int a[], int n, int i)
+{
+    int largest = i;
+    int l = 2*i + 1;
+    int r = 2*i + 2;
+
+    if(l < n && a[l] > a[largest])
+        largest = l;
+
+    if(r < n && a[r] > a[largest])
+        largest = r;
+
+    if(largest != i)
+    {
+        int temp = a[i];
+        a[i] = a[largest];
+        a[largest] = temp;
+
+        heapify(a, n, largest);
+    }
+}
+
+void heapSort(int a[], int n)
+{
+    for(int i = n/2 - 1; i >= 0; i--)
+        heapify(a, n, i);
+
+    for(int i = n-1; i >= 0; i--)
+    {
+        int temp = a[0];
+        a[0] = a[i];
+        a[i] = temp;
+
+        heapify(a, i, 0);
+    }
+}
+
+int main()
+{
+    int n, a[50];
+
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
+
+    for(int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+
+    heapSort(a, n);
+
+    printf("Sorted array:\n");
+    for(int i = 0; i < n; i++)
+        printf("%d ", a[i]);
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and store it as an adjacency list. Implement function to traverse the graph using Breadth First Search (BFS) traversal.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+
+struct node* adj[10];
+int visited[10], queue[10], front = 0, rear = -1;
+
+void addEdge(int u, int v)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->vertex = v;
+    n->next = adj[u];
+    adj[u] = n;
+}
+
+void bfs(int start)
+{
+    visited[start] = 1;
+    queue[++rear] = start;
+
+    while(front <= rear)
+    {
+        int v = queue[front++];
+        printf("%d ", v);
+
+        struct node* temp = adj[v];
+        while(temp)
+        {
+            if(!visited[temp->vertex])
+            {
+                visited[temp->vertex] = 1;
+                queue[++rear] = temp->vertex;
+            }
+            temp = temp->next;
+        }
+    }
+}
+
+int main()
+{
+    int n, e, u, v, i, start;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        adj[i] = NULL;
+        visited[i] = 0;
+    }
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        addEdge(u, v);
+        addEdge(v, u);
+    }
+
+    printf("Enter starting vertex: ");
+    scanf("%d", &start);
+
+    printf("BFS Traversal: ");
+    bfs(start);
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+PROJECT (pno, pname, ptype, duration)
+EMPLOYEE (eno, ename, qualification, joining_date)
+PROJECT_EMPLOYEE (pno, eno, start_date, no_of_hours_worked)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE project (
+    pno INT PRIMARY KEY,
+    pname CHAR(30) NOT NULL,
+    ptype CHAR(20),
+    duration INT CHECK (duration > 0)
+);
+
+CREATE TABLE employee (
+    eno INT PRIMARY KEY,
+    ename CHAR(20),
+    qualification CHAR(15),
+    joining_date DATE
+);
+
+CREATE TABLE project_employee (
+    pno INT,
+    eno INT,
+    start_date DATE,
+    no_of_hours_worked INT,
+    PRIMARY KEY (pno, eno),
+    FOREIGN KEY (pno) REFERENCES project(pno),
+    FOREIGN KEY (eno) REFERENCES employee(eno)
+);
+
+
+---
+
+🔹 Q2) Write a stored function to accept eno as input parameter and count number of projects on which that employee is working.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION count_projects(empno INT)
+RETURNS INT AS
+$$
+DECLARE
+    total INT;
+BEGIN
+    SELECT COUNT(*) INTO total
+    FROM project_employee
+    WHERE eno = empno;
+
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT count_projects(101);
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before inserting into a project table to check duration should be always greater than zero. Display appropriate message
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_duration()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.duration <= 0 THEN
+        RAISE EXCEPTION 'Duration must be greater than zero';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_project
+BEFORE INSERT ON project
+FOR EACH ROW
+EXECUTE FUNCTION check_duration();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to accept two numbers and find minimum and maximum from two numbers.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE min_max(a INT, b INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    min_val INT;
+    max_val INT;
+BEGIN
+    IF a > b THEN
+        max_val := a;
+        min_val := b;
+    ELSE
+        max_val := b;
+        min_val := a;
+    END IF;
+
+    RAISE NOTICE 'Minimum = %, Maximum = %', min_val, max_val;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL min_max(10, 25);
+
+
+---
+
+✅ 19th Slip DONE (complete + correct + exam-ready)
+
+
+---
+
+👉 If you want next:
+🔥 Ultra-short revision notes (1 night before exam)
