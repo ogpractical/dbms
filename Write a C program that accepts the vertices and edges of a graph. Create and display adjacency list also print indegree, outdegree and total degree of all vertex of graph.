@@ -1,0 +1,341 @@
+Perfect 👍 here is your 17th Slip (exact wording + full answers)
+
+
+---
+
+✅ 17th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph. Create and display adjacency list also print indegree, outdegree and total degree of all vertex of graph.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+
+struct node* adj[10];
+int indeg[10], outdeg[10];
+
+void addEdge(int u, int v)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->vertex = v;
+    n->next = adj[u];
+    adj[u] = n;
+
+    outdeg[u]++;
+    indeg[v]++;
+}
+
+int main()
+{
+    int n, e, u, v, i;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        adj[i] = NULL;
+        indeg[i] = outdeg[i] = 0;
+    }
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        addEdge(u, v);
+    }
+
+    printf("\nAdjacency List:\n");
+    for(i = 0; i < n; i++)
+    {
+        printf("%d -> ", i);
+        struct node* temp = adj[i];
+
+        while(temp)
+        {
+            printf("%d ", temp->vertex);
+            temp = temp->next;
+        }
+        printf("\n");
+    }
+
+    for(i = 0; i < n; i++)
+    {
+        printf("\nVertex %d: Indegree=%d Outdegree=%d Total=%d",
+               i, indeg[i], outdeg[i], indeg[i]+outdeg[i]);
+    }
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program to find mirror image of given Binary Search Tree and compares two Binary Search Trees.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+struct node* mirror(struct node* root)
+{
+    if(root == NULL)
+        return NULL;
+
+    struct node* temp = root->left;
+    root->left = mirror(root->right);
+    root->right = mirror(temp);
+
+    return root;
+}
+
+int compare(struct node* r1, struct node* r2)
+{
+    if(r1 == NULL && r2 == NULL)
+        return 1;
+
+    if(r1 == NULL || r2 == NULL)
+        return 0;
+
+    return (r1->data == r2->data) &&
+           compare(r1->left, r2->left) &&
+           compare(r1->right, r2->right);
+}
+
+void inorder(struct node* root)
+{
+    if(root)
+    {
+        inorder(root->left);
+        printf("%d ", root->data);
+        inorder(root->right);
+    }
+}
+
+int main()
+{
+    struct node *t1 = NULL, *t2 = NULL;
+    int n, val, i;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d", &val);
+        t1 = insert(t1, val);
+        t2 = insert(t2, val);
+    }
+
+    printf("Original Tree: ");
+    inorder(t1);
+
+    t2 = mirror(t2);
+
+    printf("\nMirror Tree: ");
+    inorder(t2);
+
+    if(compare(t1, t2))
+        printf("\nTrees are same");
+    else
+        printf("\nTrees are different");
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+STUDENT (sreg_no, name, class)
+COMPETITION (c_no, name, c_type)
+STUDENT_COMPETITION (sreg_no, c_no, rank, year, prize)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE student (
+    sreg_no INT PRIMARY KEY,
+    name CHAR(30),
+    class CHAR(10)
+);
+
+CREATE TABLE competition (
+    c_no INT PRIMARY KEY,
+    name CHAR(20),
+    c_type CHAR(15)
+);
+
+CREATE TABLE student_competition (
+    sreg_no INT,
+    c_no INT,
+    rank INT,
+    year INT,
+    prize INT,
+    PRIMARY KEY (sreg_no, c_no),
+    FOREIGN KEY (sreg_no) REFERENCES student(sreg_no),
+    FOREIGN KEY (c_no) REFERENCES competition(c_no)
+);
+
+
+---
+
+🔹 Q2) Define a trigger before updating a competition table. Raise a notice and display message “competition record is being updated”.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION before_update_comp()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    RAISE NOTICE 'competition record is being updated';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_update
+BEFORE UPDATE ON competition
+FOR EACH ROW
+EXECUTE FUNCTION before_update_comp();
+
+
+---
+
+🔁 OR
+
+❓ Write a function using cursor which accepts a name of student and returns the total no of prizes won by that student in the year 2020.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION total_prizes(sname VARCHAR)
+RETURNS INT AS
+$$
+DECLARE
+    total INT := 0;
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT sc.prize
+        FROM student s
+        JOIN student_competition sc ON s.sreg_no = sc.sreg_no
+        WHERE s.name = sname AND sc.year = 2020
+    LOOP
+        total := total + rec.prize;
+    END LOOP;
+
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT total_prizes('Omkar');
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to find sum of first 50 numbers.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE sum_50()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    i INT;
+    s INT := 0;
+BEGIN
+    FOR i IN 1..50 LOOP
+        s := s + i;
+    END LOOP;
+
+    RAISE NOTICE 'Sum = %', s;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL sum_50();
+
+
+---
+
+✅ 17th Slip DONE (complete + correct + exam-ready)
+
+
+---
+
+👉 If you want: I can now give
+🔥 Super short revision (all programs in 1 page)
