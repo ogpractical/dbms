@@ -1,0 +1,353 @@
+Perfect 👍 here is your 15th Slip (exact wording + full answers)
+
+
+---
+
+✅ 15th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to implement a hash table using Open Addressing with Quadratic Probing. Perform the following operations.
+
+Insert
+
+Search
+
+Display
+
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+#define SIZE 10
+
+int table[SIZE];
+
+int hash(int key)
+{
+    return key % SIZE;
+}
+
+void insert(int key)
+{
+    int index = hash(key);
+    int i = 0;
+
+    while(table[(index + i*i) % SIZE] != -1)
+        i++;
+
+    table[(index + i*i) % SIZE] = key;
+}
+
+void search(int key)
+{
+    int index = hash(key);
+    int i = 0;
+
+    while(table[(index + i*i) % SIZE] != -1 && i < SIZE)
+    {
+        if(table[(index + i*i) % SIZE] == key)
+        {
+            printf("Key found\n");
+            return;
+        }
+        i++;
+    }
+
+    printf("Key not found\n");
+}
+
+void display()
+{
+    for(int i = 0; i < SIZE; i++)
+        printf("%d -> %d\n", i, table[i]);
+}
+
+int main()
+{
+    int choice, key;
+
+    for(int i = 0; i < SIZE; i++)
+        table[i] = -1;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Display 4.Exit\n");
+        scanf("%d", &choice);
+
+        switch(choice)
+        {
+            case 1:
+                scanf("%d", &key);
+                insert(key);
+                break;
+            case 2:
+                scanf("%d", &key);
+                search(key);
+                break;
+            case 3:
+                display();
+                break;
+            case 4:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Implement a Binary search tree (BST) library (btree.h) with operations – create, search, inorder, preorder and postorder. Write a menu driven program.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+void inorder(struct node* root)
+{
+    if(root)
+    {
+        inorder(root->left);
+        printf("%d ", root->data);
+        inorder(root->right);
+    }
+}
+
+void preorder(struct node* root)
+{
+    if(root)
+    {
+        printf("%d ", root->data);
+        preorder(root->left);
+        preorder(root->right);
+    }
+}
+
+void postorder(struct node* root)
+{
+    if(root)
+    {
+        postorder(root->left);
+        postorder(root->right);
+        printf("%d ", root->data);
+    }
+}
+
+void search(struct node* root, int key)
+{
+    if(root == NULL)
+    {
+        printf("Not Found\n");
+        return;
+    }
+
+    if(root->data == key)
+        printf("Found\n");
+    else if(key < root->data)
+        search(root->left, key);
+    else
+        search(root->right, key);
+}
+
+int main()
+{
+    struct node* root = NULL;
+    int ch, val;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Inorder 4.Preorder 5.Postorder 6.Exit\n");
+        scanf("%d", &ch);
+
+        switch(ch)
+        {
+            case 1:
+                scanf("%d", &val);
+                root = insert(root, val);
+                break;
+            case 2:
+                scanf("%d", &val);
+                search(root, val);
+                break;
+            case 3:
+                inorder(root);
+                break;
+            case 4:
+                preorder(root);
+                break;
+            case 5:
+                postorder(root);
+                break;
+            case 6:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+Person (pnumber, pname, birthdate, income, aname)
+Area (aname, area_type)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE area (
+    aname VARCHAR(20) PRIMARY KEY,
+    area_type VARCHAR(5) CHECK (area_type IN ('urban','rural'))
+);
+
+CREATE TABLE person (
+    pnumber INT PRIMARY KEY,
+    pname VARCHAR(20),
+    birthdate DATE,
+    income MONEY,
+    aname VARCHAR(20),
+    FOREIGN KEY (aname) REFERENCES area(aname)
+);
+
+
+---
+
+🔹 Q2) Write a cursor to update the income of all people living in ‘Urban’ area by 10%.
+
+
+---
+
+✅ Cursor
+
+DO $$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT p.pnumber
+        FROM person p
+        JOIN area a ON p.aname = a.aname
+        WHERE a.area_type = 'urban'
+    LOOP
+        UPDATE person
+        SET income = income * 1.10
+        WHERE pnumber = rec.pnumber;
+    END LOOP;
+END;
+$$;
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before insert the record of person if the person number is negative raise the message “Invalid Number”.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_pnumber()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.pnumber < 0 THEN
+        RAISE EXCEPTION 'Invalid Number';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_person
+BEFORE INSERT ON person
+FOR EACH ROW
+EXECUTE FUNCTION check_pnumber();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to display all odd numbers from 1 to 100.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE odd_100()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    i INT;
+BEGIN
+    FOR i IN 1..100 LOOP
+        IF i % 2 <> 0 THEN
+            RAISE NOTICE '%', i;
+        END IF;
+    END LOOP;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL odd_100();
+
+
+---
+
+✅ 15th Slip DONE (complete + clean + exam-ready)
+
+
+---
+
+👉 If you want next:
+🔥 Top 20 repeated programs (very important for exam)
