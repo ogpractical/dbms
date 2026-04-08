@@ -1,0 +1,272 @@
+Perfect 👍 here is your 20th Slip (exact wording + full answers)
+
+
+---
+
+✅ 20th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and store it as an adjacency list. Implement function to traverse the graph using Depth First Search (DFS) traversal.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+
+struct node* adj[10];
+int visited[10];
+
+void addEdge(int u, int v)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->vertex = v;
+    n->next = adj[u];
+    adj[u] = n;
+}
+
+void dfs(int v)
+{
+    visited[v] = 1;
+    printf("%d ", v);
+
+    struct node* temp = adj[v];
+    while(temp)
+    {
+        if(!visited[temp->vertex])
+            dfs(temp->vertex);
+        temp = temp->next;
+    }
+}
+
+int main()
+{
+    int n, e, u, v, i, start;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        adj[i] = NULL;
+        visited[i] = 0;
+    }
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        addEdge(u, v);
+        addEdge(v, u);
+    }
+
+    printf("Enter starting vertex: ");
+    scanf("%d", &start);
+
+    printf("DFS Traversal: ");
+    dfs(start);
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and stores it as an adjacency matrix. Display the adjacency matrix. Calculate indegree, outdegree and total degree of each vertex.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+int main()
+{
+    int n, e, i, j, u, v;
+    int adj[10][10] = {0};
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        adj[u][v] = 1;
+    }
+
+    printf("\nAdjacency Matrix:\n");
+    for(i = 0; i < n; i++)
+    {
+        for(j = 0; j < n; j++)
+            printf("%d ", adj[i][j]);
+        printf("\n");
+    }
+
+    for(i = 0; i < n; i++)
+    {
+        int indeg = 0, outdeg = 0;
+
+        for(j = 0; j < n; j++)
+        {
+            if(adj[i][j] == 1) outdeg++;
+            if(adj[j][i] == 1) indeg++;
+        }
+
+        printf("\nVertex %d: Indegree=%d Outdegree=%d Total=%d",
+               i, indeg, outdeg, indeg+outdeg);
+    }
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+DEPARTMENT (dno, dname, city)
+EMPLOYEE (eno, ename, salary, dno)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE department (
+    dno INT PRIMARY KEY,
+    dname VARCHAR(20),
+    city VARCHAR(20)
+);
+
+CREATE TABLE employee (
+    eno INT PRIMARY KEY,
+    ename VARCHAR(20),
+    salary MONEY,
+    dno INT,
+    FOREIGN KEY (dno) REFERENCES department(dno)
+);
+
+
+---
+
+🔹 Q2) Write a function to accept department name and display the maximum salary of an employee in that department.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION max_salary(dept_name VARCHAR)
+RETURNS MONEY AS
+$$
+DECLARE
+    max_sal MONEY;
+BEGIN
+    SELECT MAX(e.salary) INTO max_sal
+    FROM employee e
+    JOIN department d ON e.dno = d.dno
+    WHERE d.dname = dept_name;
+
+    RETURN max_sal;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT max_salary('Sales');
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before insert/update on an employee record. Raise exception if salary < 0.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_salary()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.salary < 0 THEN
+        RAISE EXCEPTION 'Salary cannot be negative';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_emp
+BEFORE INSERT OR UPDATE ON employee
+FOR EACH ROW
+EXECUTE FUNCTION check_salary();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to accept a number and display multiplication table of a number.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE multiplication_table(n INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    i INT;
+BEGIN
+    FOR i IN 1..10 LOOP
+        RAISE NOTICE '% x % = %', n, i, n*i;
+    END LOOP;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL multiplication_table(5);
+
+
+---
+
+✅ 20th Slip DONE (complete + correct + exam-ready)
+
+
+---
+
+🔥 You’ve now covered ALL slips (1–20) 💯
+If you want, I can give you:
+👉 1-page final revision (super important programs only)
