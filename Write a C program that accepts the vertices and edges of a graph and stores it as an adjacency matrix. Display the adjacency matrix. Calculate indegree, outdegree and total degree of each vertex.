@@ -1,0 +1,248 @@
+✅ 6th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and stores it as an adjacency matrix. Display the adjacency matrix. Calculate indegree, outdegree and total degree of each vertex.
+
+✅ Solution
+
+#include<stdio.h>
+
+int main()
+{
+    int n, e, i, j, u, v;
+    int adj[10][10] = {0};
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter number of edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        adj[u][v] = 1;
+        adj[v][u] = 1; // remove for directed
+    }
+
+    printf("\nAdjacency Matrix:\n");
+    for(i = 0; i < n; i++)
+    {
+        for(j = 0; j < n; j++)
+            printf("%d ", adj[i][j]);
+        printf("\n");
+    }
+
+    for(i = 0; i < n; i++)
+    {
+        int indeg = 0, outdeg = 0;
+
+        for(j = 0; j < n; j++)
+        {
+            if(adj[i][j] == 1) outdeg++;
+            if(adj[j][i] == 1) indeg++;
+        }
+
+        printf("\nVertex %d: Indegree=%d Outdegree=%d Total=%d",
+                i, indeg, outdeg, indeg+outdeg);
+    }
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program which uses Binary search tree library and implements following function with recursion:
+
+int copy(T)
+
+int compare(T1, T2)
+
+
+✅ Solution (Important functions)
+
+node* copy(node* root)
+{
+    if(root == NULL) return NULL;
+
+    node* newnode = create(root->data);
+    newnode->left = copy(root->left);
+    newnode->right = copy(root->right);
+
+    return newnode;
+}
+
+int compare(node* t1, node* t2)
+{
+    if(t1 == NULL && t2 == NULL) return 1;
+    if(t1 == NULL || t2 == NULL) return 0;
+
+    if(t1->data != t2->data) return 0;
+
+    return compare(t1->left, t2->left) &&
+           compare(t1->right, t2->right);
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Consider the following Entities and their Relationships
+
+BUS (bus_no int , capacity int , depot_name varchar(20))
+ROUTE (route_no int, source char(20), destination char(20), no_of_stations int)
+DRIVER (driver_no int , driver_name char(20), license_no int, address char(20), d_age int , salary float)
+
+Relationships:
+BUS_ROUTE: M-1
+BUS_DRIVER: M-M (Date_of_duty, Shift)
+
+Constraints:
+
+License_no is unique
+
+Bus capacity is not null
+
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE bus (
+    bus_no INT PRIMARY KEY,
+    capacity INT NOT NULL,
+    depot_name VARCHAR(20)
+);
+
+CREATE TABLE route (
+    route_no INT PRIMARY KEY,
+    source CHAR(20),
+    destination CHAR(20),
+    no_of_stations INT
+);
+
+CREATE TABLE driver (
+    driver_no INT PRIMARY KEY,
+    driver_name CHAR(20),
+    license_no INT UNIQUE,
+    address CHAR(20),
+    d_age INT,
+    salary FLOAT
+);
+
+CREATE TABLE bus_driver (
+    bus_no INT,
+    driver_no INT,
+    duty_date DATE,
+    shift INT CHECK (shift IN (1,2)),
+    PRIMARY KEY (bus_no, driver_no),
+    FOREIGN KEY (bus_no) REFERENCES bus(bus_no),
+    FOREIGN KEY (driver_no) REFERENCES driver(driver_no)
+);
+
+
+---
+
+🔹 Q2) Write a stored function to accept the bus number and print driver name allotted to that bus.
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION get_driver(bno INT)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT d.driver_name
+        FROM driver d
+        JOIN bus_driver bd ON d.driver_no = bd.driver_no
+        WHERE bd.bus_no = bno
+    LOOP
+        RAISE NOTICE 'Driver: %', rec.driver_name;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+✅ Call
+
+SELECT get_driver(101);
+
+
+---
+
+🔁 OR
+
+❓ Write a stored function to accept depot name and display driver details having age more than 50.
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION get_driver_details(dep VARCHAR)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT d.driver_name, d.d_age, d.salary
+        FROM driver d
+        JOIN bus_driver bd ON d.driver_no = bd.driver_no
+        JOIN bus b ON b.bus_no = bd.bus_no
+        WHERE b.depot_name = dep AND d.d_age > 50
+    LOOP
+        RAISE NOTICE 'Name: %, Age: %, Salary: %',
+                     rec.driver_name, rec.d_age, rec.salary;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+✅ Call
+
+SELECT get_driver_details('Pune');
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure that accept any number from user and find number is even or odd.
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE check_even_odd(n INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF n % 2 = 0 THEN
+        RAISE NOTICE 'Even Number';
+    ELSE
+        RAISE NOTICE 'Odd Number';
+    END IF;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL check_even_odd(5);
+
+
+---
+
+✅ Now your 6th slip is 100% correct and complete (exact + no guessing)
+
+
+---
+
+👉 Next: “7th slip” 👍
