@@ -1,0 +1,359 @@
+Perfect 👍 here is your 13th Slip (exact wording + full answers)
+
+
+---
+
+✅ 13th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to implement a hash table using separate chaining with linked lists with following operation.
+
+Insert a key
+
+Search a key
+
+Display the hash table
+
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+#define SIZE 10
+
+struct node
+{
+    int data;
+    struct node* next;
+};
+
+struct node* table[SIZE];
+
+int hash(int key)
+{
+    return key % SIZE;
+}
+
+void insert(int key)
+{
+    int index = hash(key);
+
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = key;
+    n->next = table[index];
+    table[index] = n;
+}
+
+void search(int key)
+{
+    int index = hash(key);
+    struct node* temp = table[index];
+
+    while(temp)
+    {
+        if(temp->data == key)
+        {
+            printf("Key %d found at index %d\n", key, index);
+            return;
+        }
+        temp = temp->next;
+    }
+
+    printf("Key not found\n");
+}
+
+void display()
+{
+    for(int i = 0; i < SIZE; i++)
+    {
+        printf("%d -> ", i);
+        struct node* temp = table[i];
+
+        while(temp)
+        {
+            printf("%d -> ", temp->data);
+            temp = temp->next;
+        }
+        printf("NULL\n");
+    }
+}
+
+int main()
+{
+    int choice, key;
+
+    for(int i = 0; i < SIZE; i++)
+        table[i] = NULL;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Display 4.Exit\n");
+        scanf("%d", &choice);
+
+        switch(choice)
+        {
+            case 1:
+                scanf("%d", &key);
+                insert(key);
+                break;
+            case 2:
+                scanf("%d", &key);
+                search(key);
+                break;
+            case 3:
+                display();
+                break;
+            case 4:
+                exit(0);
+        }
+    }
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph. Create and display adjacency list also print indegree, outdegree and total degree of all vertex of graph.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+
+struct node* adj[10];
+int indeg[10], outdeg[10];
+
+void addEdge(int u, int v)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->vertex = v;
+    n->next = adj[u];
+    adj[u] = n;
+
+    outdeg[u]++;
+    indeg[v]++;
+}
+
+int main()
+{
+    int n, e, u, v, i;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        adj[i] = NULL;
+        indeg[i] = outdeg[i] = 0;
+    }
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        addEdge(u, v);
+    }
+
+    printf("\nAdjacency List:\n");
+    for(i = 0; i < n; i++)
+    {
+        printf("%d -> ", i);
+        struct node* temp = adj[i];
+
+        while(temp)
+        {
+            printf("%d ", temp->vertex);
+            temp = temp->next;
+        }
+        printf("\n");
+    }
+
+    for(i = 0; i < n; i++)
+    {
+        printf("\nVertex %d: Indegree=%d Outdegree=%d Total=%d",
+               i, indeg[i], outdeg[i], indeg[i]+outdeg[i]);
+    }
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+BUS (bus_no, capacity, depot_name)
+ROUTE (route_no, source, destination, no_of_stations)
+DRIVER (driver_no, driver_name, license_no, address, d_age, salary)
+BUS_DRIVER (bus_no, driver_no, duty_date, shift)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE bus (
+    bus_no INT PRIMARY KEY,
+    capacity INT NOT NULL,
+    depot_name VARCHAR(20)
+);
+
+CREATE TABLE route (
+    route_no INT PRIMARY KEY,
+    source CHAR(20),
+    destination CHAR(20),
+    no_of_stations INT
+);
+
+CREATE TABLE driver (
+    driver_no INT PRIMARY KEY,
+    driver_name CHAR(20),
+    license_no INT UNIQUE,
+    address CHAR(20),
+    d_age INT,
+    salary FLOAT
+);
+
+CREATE TABLE bus_driver (
+    bus_no INT,
+    driver_no INT,
+    duty_date DATE,
+    shift INT CHECK (shift IN (1,2)),
+    PRIMARY KEY (bus_no, driver_no),
+    FOREIGN KEY (bus_no) REFERENCES bus(bus_no),
+    FOREIGN KEY (driver_no) REFERENCES driver(driver_no)
+);
+
+
+---
+
+🔹 Q2) Define a trigger before insert the record of driver if the age is not between 18 and 50, raise an error message “invalid entry”.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_age()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.d_age < 18 OR NEW.d_age > 50 THEN
+        RAISE EXCEPTION 'invalid entry';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_driver
+BEFORE INSERT ON driver
+FOR EACH ROW
+EXECUTE FUNCTION check_age();
+
+
+---
+
+🔁 OR
+
+❓ Write a stored function to accept the bus_no and date and print its allotted drivers. Raise an exception in case of invalid bus number.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION get_drivers(bno INT, d DATE)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+    cnt INT;
+BEGIN
+    SELECT COUNT(*) INTO cnt FROM bus WHERE bus_no = bno;
+
+    IF cnt = 0 THEN
+        RAISE EXCEPTION 'Invalid Bus Number';
+    END IF;
+
+    FOR rec IN
+        SELECT dr.driver_name
+        FROM driver dr
+        JOIN bus_driver bd ON dr.driver_no = bd.driver_no
+        WHERE bd.bus_no = bno AND bd.duty_date = d
+    LOOP
+        RAISE NOTICE 'Driver: %', rec.driver_name;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT get_drivers(101, '2024-01-01');
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to accept value of n and display all odd numbers from 1 to n.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE odd_numbers(n INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    i INT;
+BEGIN
+    FOR i IN 1..n LOOP
+        IF i % 2 <> 0 THEN
+            RAISE NOTICE '%', i;
+        END IF;
+    END LOOP;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL odd_numbers(10);
+
+
+---
+
+✅ 13th Slip DONE (exact + all options + fully correct)
+
+
+---
+
+👉 If you want: I can now give most important repeated questions (last-day revision) 🚀
