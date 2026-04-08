@@ -1,0 +1,327 @@
+Perfect 👍 here is your 14th Slip (exact wording + full answers)
+
+
+---
+
+✅ 14th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to implement heap sort method.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+void heapify(int a[], int n, int i)
+{
+    int largest = i;
+    int l = 2*i + 1;
+    int r = 2*i + 2;
+
+    if(l < n && a[l] > a[largest])
+        largest = l;
+
+    if(r < n && a[r] > a[largest])
+        largest = r;
+
+    if(largest != i)
+    {
+        int temp = a[i];
+        a[i] = a[largest];
+        a[largest] = temp;
+
+        heapify(a, n, largest);
+    }
+}
+
+void heapSort(int a[], int n)
+{
+    for(int i = n/2 - 1; i >= 0; i--)
+        heapify(a, n, i);
+
+    for(int i = n-1; i >= 0; i--)
+    {
+        int temp = a[0];
+        a[0] = a[i];
+        a[i] = temp;
+
+        heapify(a, i, 0);
+    }
+}
+
+int main()
+{
+    int n, a[50];
+
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
+
+    for(int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+
+    heapSort(a, n);
+
+    printf("Sorted array:\n");
+    for(int i = 0; i < n; i++)
+        printf("%d ", a[i]);
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program to implement a hash table using open addressing with linear probing. perform the following operations.
+
+Insert
+
+Search
+
+Display
+
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+#define SIZE 10
+
+int table[SIZE];
+
+int hash(int key)
+{
+    return key % SIZE;
+}
+
+void insert(int key)
+{
+    int index = hash(key);
+
+    while(table[index] != -1)
+        index = (index + 1) % SIZE;
+
+    table[index] = key;
+}
+
+void search(int key)
+{
+    int index = hash(key);
+    int start = index;
+
+    while(table[index] != -1)
+    {
+        if(table[index] == key)
+        {
+            printf("Key found at %d\n", index);
+            return;
+        }
+        index = (index + 1) % SIZE;
+
+        if(index == start)
+            break;
+    }
+
+    printf("Key not found\n");
+}
+
+void display()
+{
+    for(int i = 0; i < SIZE; i++)
+        printf("%d -> %d\n", i, table[i]);
+}
+
+int main()
+{
+    int choice, key;
+
+    for(int i = 0; i < SIZE; i++)
+        table[i] = -1;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Display 4.Exit\n");
+        scanf("%d", &choice);
+
+        switch(choice)
+        {
+            case 1:
+                scanf("%d", &key);
+                insert(key);
+                break;
+            case 2:
+                scanf("%d", &key);
+                search(key);
+                break;
+            case 3:
+                display();
+                break;
+            case 4:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+PROJECT (pno, p_name, ptype, duration)
+EMPLOYEE (eno, e_name, qualification, joindate)
+PROJECT_EMPLOYEE (pno, eno, start_date, no_of_hours_worked)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE project (
+    pno INT PRIMARY KEY,
+    p_name CHAR(30),
+    ptype CHAR(20),
+    duration INT
+);
+
+CREATE TABLE employee (
+    eno INT PRIMARY KEY,
+    e_name CHAR(20),
+    qualification CHAR(15),
+    joindate DATE
+);
+
+CREATE TABLE project_employee (
+    pno INT,
+    eno INT,
+    start_date DATE,
+    no_of_hours_worked INT,
+    PRIMARY KEY (pno, eno),
+    FOREIGN KEY (pno) REFERENCES project(pno),
+    FOREIGN KEY (eno) REFERENCES employee(eno)
+);
+
+
+---
+
+🔹 Q2) Write a trigger before inserting into a project table to check duration should be always greater than zero. Display appropriate message.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_duration()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.duration <= 0 THEN
+        RAISE EXCEPTION 'Duration must be greater than zero';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_project
+BEFORE INSERT ON project
+FOR EACH ROW
+EXECUTE FUNCTION check_duration();
+
+
+---
+
+🔁 OR
+
+❓ Write a stored function to accept project name as input and print the names of employees working on the project. Raise an exception for an invalid project name.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION get_emp_by_project(pname VARCHAR)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+    cnt INT;
+BEGIN
+    SELECT COUNT(*) INTO cnt FROM project WHERE p_name = pname;
+
+    IF cnt = 0 THEN
+        RAISE EXCEPTION 'Invalid Project Name';
+    END IF;
+
+    FOR rec IN
+        SELECT e.e_name
+        FROM employee e
+        JOIN project_employee pe ON e.eno = pe.eno
+        JOIN project p ON p.pno = pe.pno
+        WHERE p.p_name = pname
+    LOOP
+        RAISE NOTICE 'Employee: %', rec.e_name;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT get_emp_by_project('AI Project');
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to insert the values in project table.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE insert_project(
+    pno INT,
+    pname CHAR,
+    ptype CHAR,
+    dur INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO project VALUES(pno, pname, ptype, dur);
+    RAISE NOTICE 'Record Inserted';
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL insert_project(1, 'AI Project', 'Research', 12);
+
+
+---
+
+✅ 14th Slip DONE (complete + correct + clean)
+
+
+---
+
+👉 If you want next: important repeated questions / viva questions 👍
