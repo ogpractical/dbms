@@ -1,0 +1,347 @@
+Perfect 👍 here is your 30th Slip (correct numbering + full answers)
+
+
+---
+
+✅ 30th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Implement a Binary Search Tree (BST) library with operations – create, insert, inorder, preorder and postorder. Write a menu driven program.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+void inorder(struct node* root)
+{
+    if(root)
+    {
+        inorder(root->left);
+        printf("%d ", root->data);
+        inorder(root->right);
+    }
+}
+
+void preorder(struct node* root)
+{
+    if(root)
+    {
+        printf("%d ", root->data);
+        preorder(root->left);
+        preorder(root->right);
+    }
+}
+
+void postorder(struct node* root)
+{
+    if(root)
+    {
+        postorder(root->left);
+        postorder(root->right);
+        printf("%d ", root->data);
+    }
+}
+
+int main()
+{
+    struct node* root = NULL;
+    int ch, val;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Inorder 3.Preorder 4.Postorder 5.Exit\n");
+        scanf("%d", &ch);
+
+        switch(ch)
+        {
+            case 1:
+                scanf("%d", &val);
+                root = insert(root, val);
+                break;
+            case 2:
+                inorder(root);
+                break;
+            case 3:
+                preorder(root);
+                break;
+            case 4:
+                postorder(root);
+                break;
+            case 5:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program to implement a hash table using open addressing with linear probing. Perform operations: Insert, Search, Display
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+#define SIZE 10
+
+int table[SIZE];
+
+int hash(int key)
+{
+    return key % SIZE;
+}
+
+void insert(int key)
+{
+    int index = hash(key);
+
+    while(table[index] != -1)
+        index = (index + 1) % SIZE;
+
+    table[index] = key;
+}
+
+void search(int key)
+{
+    int index = hash(key);
+    int start = index;
+
+    while(table[index] != -1)
+    {
+        if(table[index] == key)
+        {
+            printf("Found at index %d\n", index);
+            return;
+        }
+        index = (index + 1) % SIZE;
+
+        if(index == start)
+            break;
+    }
+
+    printf("Not Found\n");
+}
+
+void display()
+{
+    for(int i = 0; i < SIZE; i++)
+        printf("%d -> %d\n", i, table[i]);
+}
+
+int main()
+{
+    int i, ch, key;
+
+    for(i = 0; i < SIZE; i++)
+        table[i] = -1;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Display 4.Exit\n");
+        scanf("%d", &ch);
+
+        switch(ch)
+        {
+            case 1:
+                scanf("%d", &key);
+                insert(key);
+                break;
+            case 2:
+                scanf("%d", &key);
+                search(key);
+                break;
+            case 3:
+                display();
+                break;
+            case 4:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+STUDENT (roll_no, sname, sclass)
+TEACHER (t_no, tname, experience)
+STUDENT_TEACHER (roll_no, t_no, subject)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE student (
+    roll_no INT PRIMARY KEY,
+    sname VARCHAR(20),
+    sclass VARCHAR(10)
+);
+
+CREATE TABLE teacher (
+    t_no INT PRIMARY KEY,
+    tname VARCHAR(20),
+    experience INT
+);
+
+CREATE TABLE student_teacher (
+    roll_no INT,
+    t_no INT,
+    subject VARCHAR(20),
+    PRIMARY KEY (roll_no, t_no),
+    FOREIGN KEY (roll_no) REFERENCES student(roll_no),
+    FOREIGN KEY (t_no) REFERENCES teacher(t_no)
+);
+
+
+---
+
+🔹 Q2) Write a stored function to count number of teachers having experience > 10 years
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION count_teachers()
+RETURNS INT AS
+$$
+DECLARE
+    total INT;
+BEGIN
+    SELECT COUNT(*) INTO total
+    FROM teacher
+    WHERE experience > 10;
+
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT count_teachers();
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before insert on student. If roll_no <= 0, display error.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_roll()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.roll_no <= 0 THEN
+        RAISE EXCEPTION 'Invalid Roll Number';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_student
+BEFORE INSERT ON student
+FOR EACH ROW
+EXECUTE FUNCTION check_roll();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to accept n and find sum and average of first n numbers
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE sum_avg(n INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    sum_val INT := 0;
+    avg_val FLOAT;
+    i INT;
+BEGIN
+    FOR i IN 1..n LOOP
+        sum_val := sum_val + i;
+    END LOOP;
+
+    avg_val := sum_val::FLOAT / n;
+
+    RAISE NOTICE 'Sum = %', sum_val;
+    RAISE NOTICE 'Average = %', avg_val;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL sum_avg(10);
+
+
+---
+
+✅ 30th Slip DONE (complete + correct 💯)
+
+
+---
+
+🔥 You now have 30 SLIPS completed 🎉
+
+If you want next: 📌 Important repeated programs (VERY likely in exam)
+📌 Quick revision notes (1-hour study)
