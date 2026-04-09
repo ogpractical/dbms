@@ -1,0 +1,340 @@
+Perfect 👍 here is your 22nd Slip (exact wording + full answers)
+
+
+---
+
+✅ 22nd Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to implement a hash table using Open Addressing with Quadratic Probing. Perform the following operations.
+
+Insert
+
+Search
+
+Display
+
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+#define SIZE 10
+
+int table[SIZE];
+
+int hash(int key)
+{
+    return key % SIZE;
+}
+
+void insert(int key)
+{
+    int index = hash(key);
+    int i = 0;
+
+    while(table[(index + i*i) % SIZE] != -1)
+        i++;
+
+    table[(index + i*i) % SIZE] = key;
+}
+
+void search(int key)
+{
+    int index = hash(key);
+    int i = 0;
+
+    while(table[(index + i*i) % SIZE] != -1 && i < SIZE)
+    {
+        if(table[(index + i*i) % SIZE] == key)
+        {
+            printf("Key found\n");
+            return;
+        }
+        i++;
+    }
+
+    printf("Key not found\n");
+}
+
+void display()
+{
+    for(int i = 0; i < SIZE; i++)
+        printf("%d -> %d\n", i, table[i]);
+}
+
+int main()
+{
+    int choice, key;
+
+    for(int i = 0; i < SIZE; i++)
+        table[i] = -1;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Display 4.Exit\n");
+        scanf("%d", &choice);
+
+        switch(choice)
+        {
+            case 1:
+                scanf("%d", &key);
+                insert(key);
+                break;
+            case 2:
+                scanf("%d", &key);
+                search(key);
+                break;
+            case 3:
+                display();
+                break;
+            case 4:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and stores it as an adjacency list. Display the adjacency matrix. Calculate indegree, outdegree and total degree of each vertex.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+
+struct node* adj[10];
+int indeg[10], outdeg[10];
+int matrix[10][10];
+
+void addEdge(int u, int v)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->vertex = v;
+    n->next = adj[u];
+    adj[u] = n;
+
+    matrix[u][v] = 1;
+
+    outdeg[u]++;
+    indeg[v]++;
+}
+
+int main()
+{
+    int n, e, u, v, i, j;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        adj[i] = NULL;
+        indeg[i] = outdeg[i] = 0;
+        for(j = 0; j < n; j++)
+            matrix[i][j] = 0;
+    }
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        addEdge(u, v);
+    }
+
+    printf("\nAdjacency List:\n");
+    for(i = 0; i < n; i++)
+    {
+        printf("%d -> ", i);
+        struct node* temp = adj[i];
+        while(temp)
+        {
+            printf("%d ", temp->vertex);
+            temp = temp->next;
+        }
+        printf("\n");
+    }
+
+    printf("\nAdjacency Matrix:\n");
+    for(i = 0; i < n; i++)
+    {
+        for(j = 0; j < n; j++)
+            printf("%d ", matrix[i][j]);
+        printf("\n");
+    }
+
+    for(i = 0; i < n; i++)
+    {
+        printf("\nVertex %d: Indegree=%d Outdegree=%d Total=%d",
+               i, indeg[i], outdeg[i], indeg[i]+outdeg[i]);
+    }
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+PROJECT (pno, pname, ptype, duration)
+EMPLOYEE (eno, ename, qualification, joining_date)
+PROJECT_EMPLOYEE (pno, eno, start_date, no_of_hours_worked)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE project (
+    pno INT PRIMARY KEY,
+    pname CHAR(30) NOT NULL,
+    ptype CHAR(20),
+    duration INT CHECK (duration > 0)
+);
+
+CREATE TABLE employee (
+    eno INT PRIMARY KEY,
+    ename CHAR(20),
+    qualification CHAR(15),
+    joining_date DATE
+);
+
+CREATE TABLE project_employee (
+    pno INT,
+    eno INT,
+    start_date DATE,
+    no_of_hours_worked INT,
+    PRIMARY KEY (pno, eno),
+    FOREIGN KEY (pno) REFERENCES project(pno),
+    FOREIGN KEY (eno) REFERENCES employee(eno)
+);
+
+
+---
+
+🔹 Q2) Write a stored function to accept eno as input parameter and count number of projects on which that employee is working.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION count_projects(empno INT)
+RETURNS INT AS
+$$
+DECLARE
+    total INT;
+BEGIN
+    SELECT COUNT(*) INTO total
+    FROM project_employee
+    WHERE eno = empno;
+
+    RETURN total;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT count_projects(101);
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before inserting into a project table to check duration should be always greater than zero. Display appropriate message
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_duration()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.duration <= 0 THEN
+        RAISE EXCEPTION 'Duration must be greater than zero';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_project
+BEFORE INSERT ON project
+FOR EACH ROW
+EXECUTE FUNCTION check_duration();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to display first 20 odd numbers.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE first_20_odd()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    i INT := 1;
+    cnt INT := 0;
+BEGIN
+    WHILE cnt < 20 LOOP
+        RAISE NOTICE '%', i;
+        i := i + 2;
+        cnt := cnt + 1;
+    END LOOP;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL first_20_odd();
+
+
+---
+
+✅ 22nd Slip DONE (complete + correct + exam-ready)
+
+
+---
+
+🔥 You’ve now covered 22 FULL slips 💯
+
+👉 If you want, I can now give:
+⭐ Top 10 MOST IMPORTANT programs (high probability in exam)
