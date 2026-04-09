@@ -1,0 +1,307 @@
+Perfect 👍 here is your 21st Slip (exact wording + full answers)
+
+
+---
+
+✅ 21st Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program for the implementation of Topological sorting.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+int adj[10][10], indeg[10], n;
+
+void topological()
+{
+    int i, j, count = 0;
+
+    while(count < n)
+    {
+        for(i = 0; i < n; i++)
+        {
+            if(indeg[i] == 0)
+            {
+                printf("%d ", i);
+                indeg[i] = -1;
+
+                for(j = 0; j < n; j++)
+                {
+                    if(adj[i][j] == 1)
+                        indeg[j]--;
+                }
+                count++;
+            }
+        }
+    }
+}
+
+int main()
+{
+    int i, j;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix:\n");
+    for(i = 0; i < n; i++)
+    {
+        indeg[i] = 0;
+        for(j = 0; j < n; j++)
+        {
+            scanf("%d", &adj[i][j]);
+            if(adj[i][j] == 1)
+                indeg[j]++;
+        }
+    }
+
+    printf("Topological order:\n");
+    topological();
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program to implement a hash table using open addressing with linear probing. perform the following operations.
+
+Insert
+
+Search
+
+Display
+
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+#define SIZE 10
+
+int table[SIZE];
+
+int hash(int key)
+{
+    return key % SIZE;
+}
+
+void insert(int key)
+{
+    int index = hash(key);
+
+    while(table[index] != -1)
+        index = (index + 1) % SIZE;
+
+    table[index] = key;
+}
+
+void search(int key)
+{
+    int index = hash(key);
+    int start = index;
+
+    while(table[index] != -1)
+    {
+        if(table[index] == key)
+        {
+            printf("Key found at %d\n", index);
+            return;
+        }
+        index = (index + 1) % SIZE;
+
+        if(index == start)
+            break;
+    }
+
+    printf("Key not found\n");
+}
+
+void display()
+{
+    for(int i = 0; i < SIZE; i++)
+        printf("%d -> %d\n", i, table[i]);
+}
+
+int main()
+{
+    int choice, key;
+
+    for(int i = 0; i < SIZE; i++)
+        table[i] = -1;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Display 4.Exit\n");
+        scanf("%d", &choice);
+
+        switch(choice)
+        {
+            case 1:
+                scanf("%d", &key);
+                insert(key);
+                break;
+            case 2:
+                scanf("%d", &key);
+                search(key);
+                break;
+            case 3:
+                display();
+                break;
+            case 4:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+DOCTOR (d_no, d_name, specialization, phone_no, charges, h_no)
+HOSPITAL (h_no, h_name, city)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE hospital (
+    h_no INT PRIMARY KEY,
+    h_name VARCHAR(20),
+    city VARCHAR(10)
+);
+
+CREATE TABLE doctor (
+    d_no INT PRIMARY KEY,
+    d_name VARCHAR(30),
+    specialization VARCHAR(35),
+    phone_no INT,
+    charges INT,
+    h_no INT,
+    FOREIGN KEY (h_no) REFERENCES hospital(h_no)
+);
+
+
+---
+
+🔹 Q2) Write a function which will accept the name of the hospital and calculate the average charges of doctors visiting that hospital.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION avg_charges(hname VARCHAR)
+RETURNS NUMERIC AS
+$$
+DECLARE
+    avg_val NUMERIC;
+BEGIN
+    SELECT AVG(d.charges) INTO avg_val
+    FROM doctor d
+    JOIN hospital h ON d.h_no = h.h_no
+    WHERE h.h_name = hname;
+
+    RETURN avg_val;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT avg_charges('City Hospital');
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before insert/update on Doctor. Raise exception if charges are < 0.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_charges()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.charges < 0 THEN
+        RAISE EXCEPTION 'Charges cannot be negative';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_doc
+BEFORE INSERT OR UPDATE ON doctor
+FOR EACH ROW
+EXECUTE FUNCTION check_charges();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to insert the values in Doctor table.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE insert_doctor(
+    dno INT,
+    dname VARCHAR,
+    spec VARCHAR,
+    phone INT,
+    ch INT,
+    hno INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO doctor VALUES(dno, dname, spec, phone, ch, hno);
+    RAISE NOTICE 'Record Inserted';
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL insert_doctor(1, 'Dr. A', 'Cardiology', 1234567890, 500, 10);
+
+
+---
+
+✅ 21st Slip DONE (complete + correct + exam-ready)
+
+
+---
+
+🎯 You now have 21 slips fully completed 💯
+If you want, I can give:
+🔥 Most expected programs (very high chance in exam)
