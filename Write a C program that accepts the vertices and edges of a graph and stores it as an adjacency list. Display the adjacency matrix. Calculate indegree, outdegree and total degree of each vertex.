@@ -1,0 +1,330 @@
+Got it 👍 here is your 24th Slip (FULL – corrected + complete)
+
+
+---
+
+✅ 24th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and stores it as an adjacency list. Display the adjacency matrix. Calculate indegree, outdegree and total degree of each vertex.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+
+struct node* adj[10];
+int indeg[10], outdeg[10];
+int matrix[10][10];
+
+void addEdge(int u, int v)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->vertex = v;
+    n->next = adj[u];
+    adj[u] = n;
+
+    matrix[u][v] = 1;
+
+    outdeg[u]++;
+    indeg[v]++;
+}
+
+int main()
+{
+    int n, e, u, v, i, j;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        adj[i] = NULL;
+        indeg[i] = outdeg[i] = 0;
+        for(j = 0; j < n; j++)
+            matrix[i][j] = 0;
+    }
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        addEdge(u, v);
+    }
+
+    printf("\nAdjacency List:\n");
+    for(i = 0; i < n; i++)
+    {
+        printf("%d -> ", i);
+        struct node* temp = adj[i];
+        while(temp)
+        {
+            printf("%d ", temp->vertex);
+            temp = temp->next;
+        }
+        printf("\n");
+    }
+
+    printf("\nAdjacency Matrix:\n");
+    for(i = 0; i < n; i++)
+    {
+        for(j = 0; j < n; j++)
+            printf("%d ", matrix[i][j]);
+        printf("\n");
+    }
+
+    for(i = 0; i < n; i++)
+    {
+        printf("\nVertex %d: Indegree=%d Outdegree=%d Total=%d",
+               i, indeg[i], outdeg[i], indeg[i]+outdeg[i]);
+    }
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program to implement a hash table using Open Addressing with Quadratic Probing. Perform the following operations.
+
+Insert
+
+Search
+
+Display
+
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+#define SIZE 10
+
+int table[SIZE];
+
+int hash(int key)
+{
+    return key % SIZE;
+}
+
+void insert(int key)
+{
+    int index = hash(key);
+    int i = 0;
+
+    while(table[(index + i*i) % SIZE] != -1)
+        i++;
+
+    table[(index + i*i) % SIZE] = key;
+}
+
+void search(int key)
+{
+    int index = hash(key);
+    int i = 0;
+
+    while(table[(index + i*i) % SIZE] != -1 && i < SIZE)
+    {
+        if(table[(index + i*i) % SIZE] == key)
+        {
+            printf("Key found\n");
+            return;
+        }
+        i++;
+    }
+
+    printf("Key not found\n");
+}
+
+void display()
+{
+    for(int i = 0; i < SIZE; i++)
+        printf("%d -> %d\n", i, table[i]);
+}
+
+int main()
+{
+    int choice, key;
+
+    for(int i = 0; i < SIZE; i++)
+        table[i] = -1;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Display 4.Exit\n");
+        scanf("%d", &choice);
+
+        switch(choice)
+        {
+            case 1:
+                scanf("%d", &key);
+                insert(key);
+                break;
+            case 2:
+                scanf("%d", &key);
+                search(key);
+                break;
+            case 3:
+                display();
+                break;
+            case 4:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+DEPARTMENT (dno, dname, city)
+EMPLOYEE (eno, ename, salary, dno)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE department (
+    dno INT PRIMARY KEY,
+    dname VARCHAR(20),
+    city VARCHAR(20)
+);
+
+CREATE TABLE employee (
+    eno INT PRIMARY KEY,
+    ename VARCHAR(20),
+    salary MONEY,
+    dno INT,
+    FOREIGN KEY (dno) REFERENCES department(dno)
+);
+
+
+---
+
+🔹 Q2) Write a function to accept department name as input and display employee name along with salary of that department.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION emp_details(dept_name VARCHAR)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT e.ename, e.salary
+        FROM employee e
+        JOIN department d ON e.dno = d.dno
+        WHERE d.dname = dept_name
+    LOOP
+        RAISE NOTICE 'Employee: %, Salary: %',
+                     rec.ename, rec.salary;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT emp_details('HR');
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger after insert on an employee record. Display appropriate message when the record is inserted.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION after_insert_emp()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    RAISE NOTICE 'Employee record inserted successfully';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_after_emp
+AFTER INSERT ON employee
+FOR EACH ROW
+EXECUTE FUNCTION after_insert_emp();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a stored procedure to accept value of n and display first n even numbers.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE even_numbers(n INT)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    i INT := 2;
+    count INT := 0;
+BEGIN
+    WHILE count < n LOOP
+        RAISE NOTICE '%', i;
+        i := i + 2;
+        count := count + 1;
+    END LOOP;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL even_numbers(10);
+
+
+---
+
+✅ 24th Slip FULLY CORRECTED & COMPLETE 💯
+
+
+---
+
+👉 Now all slips are perfectly aligned ✅
+If you want:
+🔥 Important questions that repeat every year
