@@ -1,0 +1,312 @@
+Perfect 👍 here is your 23rd Slip (exact wording + full answers)
+
+
+---
+
+✅ 23rd Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to count total nodes and total leaf nodes in the tree.
+
+int count(T) – returns total nodes
+int countLeaf(T) – returns total leaf nodes
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+int count(struct node* root)
+{
+    if(root == NULL)
+        return 0;
+    return 1 + count(root->left) + count(root->right);
+}
+
+int countLeaf(struct node* root)
+{
+    if(root == NULL)
+        return 0;
+
+    if(root->left == NULL && root->right == NULL)
+        return 1;
+
+    return countLeaf(root->left) + countLeaf(root->right);
+}
+
+int main()
+{
+    struct node* root = NULL;
+    int n, val, i;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d", &val);
+        root = insert(root, val);
+    }
+
+    printf("Total Nodes = %d\n", count(root));
+    printf("Leaf Nodes = %d\n", countLeaf(root));
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program for the implementation of Topological sorting.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+int adj[10][10], indeg[10], n;
+
+void topo()
+{
+    int i, j, count = 0;
+
+    while(count < n)
+    {
+        for(i = 0; i < n; i++)
+        {
+            if(indeg[i] == 0)
+            {
+                printf("%d ", i);
+                indeg[i] = -1;
+
+                for(j = 0; j < n; j++)
+                {
+                    if(adj[i][j] == 1)
+                        indeg[j]--;
+                }
+                count++;
+            }
+        }
+    }
+}
+
+int main()
+{
+    int i, j;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix:\n");
+    for(i = 0; i < n; i++)
+    {
+        indeg[i] = 0;
+        for(j = 0; j < n; j++)
+        {
+            scanf("%d", &adj[i][j]);
+            if(adj[i][j] == 1)
+                indeg[j]++;
+        }
+    }
+
+    printf("Topological order:\n");
+    topo();
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+CAR (c_no, owner, model, color)
+DRIVER (driver_no, driver_name, license_no, d_age, salary)
+CAR_DRIVER (c_no, driver_no)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE car (
+    c_no INT PRIMARY KEY,
+    owner VARCHAR(20),
+    model VARCHAR(10),
+    color VARCHAR(10)
+);
+
+CREATE TABLE driver (
+    driver_no INT PRIMARY KEY,
+    driver_name VARCHAR(20),
+    license_no INT,
+    d_age INT,
+    salary FLOAT
+);
+
+CREATE TABLE car_driver (
+    c_no INT,
+    driver_no INT,
+    PRIMARY KEY (c_no, driver_no),
+    FOREIGN KEY (c_no) REFERENCES car(c_no),
+    FOREIGN KEY (driver_no) REFERENCES driver(driver_no)
+);
+
+
+---
+
+🔹 Q2) Write a cursor which accepts the driver name and prints the details of all cars that this driver has driven, if the driver name is invalid, print an appropriate message.
+
+
+---
+
+✅ Cursor Function
+
+CREATE OR REPLACE FUNCTION get_cars(dname VARCHAR)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+    cnt INT;
+BEGIN
+    SELECT COUNT(*) INTO cnt FROM driver WHERE driver_name = dname;
+
+    IF cnt = 0 THEN
+        RAISE NOTICE 'Invalid Driver Name';
+        RETURN;
+    END IF;
+
+    FOR rec IN
+        SELECT c.*
+        FROM car c
+        JOIN car_driver cd ON c.c_no = cd.c_no
+        JOIN driver d ON d.driver_no = cd.driver_no
+        WHERE d.driver_name = dname
+    LOOP
+        RAISE NOTICE 'Car: %, Owner: %, Model: %, Color: %',
+                     rec.c_no, rec.owner, rec.model, rec.color;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT get_cars('Rahul');
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before insert/update on Driver. Raise exception if driver age is < 21.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_age()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.d_age < 21 THEN
+        RAISE EXCEPTION 'Driver age must be >= 21';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_driver
+BEFORE INSERT OR UPDATE ON driver
+FOR EACH ROW
+EXECUTE FUNCTION check_age();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to find sum of first 100 numbers.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE sum_100()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    i INT;
+    s INT := 0;
+BEGIN
+    FOR i IN 1..100 LOOP
+        s := s + i;
+    END LOOP;
+
+    RAISE NOTICE 'Sum = %', s;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL sum_100();
+
+
+---
+
+✅ 23rd Slip DONE (complete + correct + exam-ready)
+
+
+---
+
+🔥 You now have 23 FULL slips 💯 (complete syllabus coverage)
+
+👉 If you want next:
+⭐ Last-night revision (most repeated codes only)
