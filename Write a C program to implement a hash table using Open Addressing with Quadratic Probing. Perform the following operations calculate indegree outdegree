@@ -1,0 +1,318 @@
+Perfect 👍 here is your 28th Slip (correct numbering + full answers)
+
+
+---
+
+✅ 28th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program to implement a hash table using Open Addressing with Quadratic Probing. Perform the following operations.
+
+Insert
+
+Delete
+
+Display
+
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+#define SIZE 10
+
+int table[SIZE];
+
+int hash(int key)
+{
+    return key % SIZE;
+}
+
+void insert(int key)
+{
+    int index = hash(key);
+    int i = 0;
+
+    while(table[(index + i*i) % SIZE] != -1 && table[(index + i*i) % SIZE] != -2)
+        i++;
+
+    table[(index + i*i) % SIZE] = key;
+}
+
+void delete(int key)
+{
+    int index = hash(key);
+    int i = 0;
+
+    while(table[(index + i*i) % SIZE] != -1 && i < SIZE)
+    {
+        if(table[(index + i*i) % SIZE] == key)
+        {
+            table[(index + i*i) % SIZE] = -2; // mark deleted
+            printf("Deleted\n");
+            return;
+        }
+        i++;
+    }
+
+    printf("Key not found\n");
+}
+
+void display()
+{
+    for(int i = 0; i < SIZE; i++)
+        printf("%d -> %d\n", i, table[i]);
+}
+
+int main()
+{
+    int i, ch, key;
+
+    for(i = 0; i < SIZE; i++)
+        table[i] = -1;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Delete 3.Display 4.Exit\n");
+        scanf("%d", &ch);
+
+        switch(ch)
+        {
+            case 1:
+                scanf("%d", &key);
+                insert(key);
+                break;
+            case 2:
+                scanf("%d", &key);
+                delete(key);
+                break;
+            case 3:
+                display();
+                break;
+            case 4:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and stores it as an adjacency list. Display adjacency matrix. Calculate indegree, outdegree and total degree.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int vertex;
+    struct node* next;
+};
+
+struct node* adj[10];
+int matrix[10][10], indeg[10], outdeg[10];
+
+void addEdge(int u, int v)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->vertex = v;
+    n->next = adj[u];
+    adj[u] = n;
+
+    matrix[u][v] = 1;
+    outdeg[u]++;
+    indeg[v]++;
+}
+
+int main()
+{
+    int n, e, u, v, i, j;
+
+    printf("Enter vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        adj[i] = NULL;
+        indeg[i] = outdeg[i] = 0;
+        for(j = 0; j < n; j++)
+            matrix[i][j] = 0;
+    }
+
+    printf("Enter edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        addEdge(u, v);
+    }
+
+    printf("\nAdjacency Matrix:\n");
+    for(i = 0; i < n; i++)
+    {
+        for(j = 0; j < n; j++)
+            printf("%d ", matrix[i][j]);
+        printf("\n");
+    }
+
+    for(i = 0; i < n; i++)
+    {
+        printf("\nVertex %d: Indegree=%d Outdegree=%d Total=%d",
+               i, indeg[i], outdeg[i], indeg[i]+outdeg[i]);
+    }
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+COMPANY (name, address, city, share_value)
+PERSON (pname, pcity)
+COMPANY_PERSON (name, pname, no_of_shares)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE company (
+    name VARCHAR(30) PRIMARY KEY,
+    address VARCHAR(50),
+    city VARCHAR(20),
+    share_value MONEY
+);
+
+CREATE TABLE person (
+    pname VARCHAR(30) PRIMARY KEY,
+    pcity VARCHAR(20)
+);
+
+CREATE TABLE company_person (
+    name VARCHAR(30),
+    pname VARCHAR(30),
+    no_of_shares INT,
+    PRIMARY KEY (name, pname),
+    FOREIGN KEY (name) REFERENCES company(name),
+    FOREIGN KEY (pname) REFERENCES person(pname)
+);
+
+
+---
+
+🔹 Q2) Write a stored function to update the share_values by 20% for Person.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION update_share(p_name VARCHAR)
+RETURNS VOID AS
+$$
+BEGIN
+    UPDATE company
+    SET share_value = share_value * 1.2
+    WHERE name IN (
+        SELECT name
+        FROM company_person
+        WHERE pname = p_name
+    );
+
+    RAISE NOTICE 'Share values updated by 20%';
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT update_share('Rahul');
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before deleting company record. Display appropriate message.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION before_delete_company()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    RAISE NOTICE 'Company record is being deleted';
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_company_delete
+BEFORE DELETE ON company
+FOR EACH ROW
+EXECUTE FUNCTION before_delete_company();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to insert values into person table.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE insert_person(pn VARCHAR, pc VARCHAR)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO person(pname, pcity)
+    VALUES (pn, pc);
+
+    RAISE NOTICE 'Record inserted';
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL insert_person('Amit', 'Pune');
+
+
+---
+
+✅ 28th Slip DONE (complete + correct 💯)
+
+
+---
+
+🔥 You now have 28 SLIPS completed
+
+👉 If you want next: ⭐ Final revision notes (very important for passing exam)
