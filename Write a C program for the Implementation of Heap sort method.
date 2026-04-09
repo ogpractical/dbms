@@ -1,0 +1,310 @@
+Perfect 👍 here is your 27th Slip (correct numbering + full answers)
+
+
+---
+
+✅ 27th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program for the Implementation of Heap sort method.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+void heapify(int a[], int n, int i)
+{
+    int largest = i;
+    int left = 2*i + 1;
+    int right = 2*i + 2;
+    int temp;
+
+    if(left < n && a[left] > a[largest])
+        largest = left;
+
+    if(right < n && a[right] > a[largest])
+        largest = right;
+
+    if(largest != i)
+    {
+        temp = a[i];
+        a[i] = a[largest];
+        a[largest] = temp;
+
+        heapify(a, n, largest);
+    }
+}
+
+void heapSort(int a[], int n)
+{
+    int i, temp;
+
+    for(i = n/2 - 1; i >= 0; i--)
+        heapify(a, n, i);
+
+    for(i = n - 1; i >= 0; i--)
+    {
+        temp = a[0];
+        a[0] = a[i];
+        a[i] = temp;
+
+        heapify(a, i, 0);
+    }
+}
+
+int main()
+{
+    int n, i, a[20];
+
+    printf("Enter number of elements: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+
+    heapSort(a, n);
+
+    printf("Sorted elements:\n");
+    for(i = 0; i < n; i++)
+        printf("%d ", a[i]);
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and store it as an adjacency matrix. Implement function to traverse the graph using Breadth First Search (BFS) traversal.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+int adj[10][10], visited[10], queue[10];
+int front = -1, rear = -1, n;
+
+void enqueue(int x)
+{
+    if(rear == -1)
+        front = rear = 0;
+    else
+        rear++;
+    queue[rear] = x;
+}
+
+int dequeue()
+{
+    int x = queue[front];
+    if(front == rear)
+        front = rear = -1;
+    else
+        front++;
+    return x;
+}
+
+void bfs(int v)
+{
+    int i;
+    enqueue(v);
+    visited[v] = 1;
+
+    while(front != -1)
+    {
+        v = dequeue();
+        printf("%d ", v);
+
+        for(i = 0; i < n; i++)
+        {
+            if(adj[v][i] == 1 && visited[i] == 0)
+            {
+                enqueue(i);
+                visited[i] = 1;
+            }
+        }
+    }
+}
+
+int main()
+{
+    int i, j, e, u, v;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        visited[i] = 0;
+        for(j = 0; j < n; j++)
+            adj[i][j] = 0;
+    }
+
+    printf("Enter number of edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        adj[u][v] = 1;
+        adj[v][u] = 1;
+    }
+
+    printf("BFS Traversal:\n");
+    bfs(0);
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+STUDENT (rollno, name, class)
+SUBJECT (scode, subject_name)
+STUDENT_SUBJECT (rollno, scode, marks_scored)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE student (
+    rollno INT PRIMARY KEY,
+    name VARCHAR(30),
+    class VARCHAR(10)
+);
+
+CREATE TABLE subject (
+    scode VARCHAR(10) PRIMARY KEY,
+    subject_name VARCHAR(20)
+);
+
+CREATE TABLE student_subject (
+    rollno INT,
+    scode VARCHAR(10),
+    marks_scored INT,
+    PRIMARY KEY (rollno, scode),
+    FOREIGN KEY (rollno) REFERENCES student(rollno),
+    FOREIGN KEY (scode) REFERENCES subject(scode)
+);
+
+
+---
+
+🔹 Q2) Write a stored function using cursors, to accept class and display details of students of that class.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION student_by_class(cls VARCHAR)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT * FROM student WHERE class = cls
+    LOOP
+        RAISE NOTICE 'Roll: %, Name: %, Class: %',
+                     rec.rollno, rec.name, rec.class;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT student_by_class('TYBSC');
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before insert/update marks_scored. Raise exception if marks are negative.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_marks()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF NEW.marks_scored < 0 THEN
+        RAISE EXCEPTION 'Marks cannot be negative';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_marks
+BEFORE INSERT OR UPDATE ON student_subject
+FOR EACH ROW
+EXECUTE FUNCTION check_marks();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to accept and display addition, subtraction and division of two numbers. Handle division by zero error.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE operations(a INT, b INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RAISE NOTICE 'Addition = %', a + b;
+    RAISE NOTICE 'Subtraction = %', a - b;
+
+    IF b = 0 THEN
+        RAISE NOTICE 'Division by zero not allowed';
+    ELSE
+        RAISE NOTICE 'Division = %', a / b;
+    END IF;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL operations(10, 5);
+
+
+---
+
+✅ 27th Slip DONE (complete + correct 💯)
+
+
+---
+
+🔥 You now have 27 slips completed
+
+👉 Next = 28th slip (if any left)
+Or I can give: ⭐ Final revision cheat sheet (very important for exam)
