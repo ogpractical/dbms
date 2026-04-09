@@ -1,0 +1,305 @@
+Perfect 👍 here is your 26th Slip (correct numbering + full answers)
+
+
+---
+
+✅ 26th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program that accepts the vertices and edges of a graph and store it as an adjacency matrix. Implement function to traverse the graph using Depth First Search (DFS) traversal.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+int adj[10][10], visited[10], n;
+
+void dfs(int v)
+{
+    int i;
+    printf("%d ", v);
+    visited[v] = 1;
+
+    for(i = 0; i < n; i++)
+    {
+        if(adj[v][i] == 1 && visited[i] == 0)
+            dfs(i);
+    }
+}
+
+int main()
+{
+    int i, j, e, u, v;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        visited[i] = 0;
+        for(j = 0; j < n; j++)
+            adj[i][j] = 0;
+    }
+
+    printf("Enter number of edges: ");
+    scanf("%d", &e);
+
+    for(i = 0; i < e; i++)
+    {
+        scanf("%d %d", &u, &v);
+        adj[u][v] = 1;
+        adj[v][u] = 1; // for undirected graph
+    }
+
+    printf("DFS Traversal:\n");
+    dfs(0);
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Write a C program to copy a Binary Search Tree and compares two binary search trees.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+struct node* copyTree(struct node* root)
+{
+    if(root == NULL)
+        return NULL;
+
+    struct node* newNode = create(root->data);
+    newNode->left = copyTree(root->left);
+    newNode->right = copyTree(root->right);
+
+    return newNode;
+}
+
+int compare(struct node* t1, struct node* t2)
+{
+    if(t1 == NULL && t2 == NULL)
+        return 1;
+
+    if(t1 && t2)
+        return (t1->data == t2->data &&
+                compare(t1->left, t2->left) &&
+                compare(t1->right, t2->right));
+
+    return 0;
+}
+
+int main()
+{
+    struct node *root = NULL, *copy = NULL;
+    int n, val, i;
+
+    printf("Enter number of nodes: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++)
+    {
+        scanf("%d", &val);
+        root = insert(root, val);
+    }
+
+    copy = copyTree(root);
+
+    if(compare(root, copy))
+        printf("Trees are identical\n");
+    else
+        printf("Trees are not identical\n");
+
+    return 0;
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+ITEM (itemno, itemname, quantity)
+SUPPLIER (supplierno, suppliername, city)
+ITEM_SUPPLIER (itemno, supplierno, rate)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE item (
+    itemno INT PRIMARY KEY,
+    itemname VARCHAR(20),
+    quantity INT
+);
+
+CREATE TABLE supplier (
+    supplierno INT PRIMARY KEY,
+    suppliername VARCHAR(20),
+    city VARCHAR(20)
+);
+
+CREATE TABLE item_supplier (
+    itemno INT,
+    supplierno INT,
+    rate INT,
+    PRIMARY KEY (itemno, supplierno),
+    FOREIGN KEY (itemno) REFERENCES item(itemno),
+    FOREIGN KEY (supplierno) REFERENCES supplier(supplierno)
+);
+
+
+---
+
+🔹 Q2) Write a stored function using cursors, to accept Item name and display Rate and Supplier Name for that Item.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION item_details(iname VARCHAR)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT s.suppliername, isup.rate
+        FROM item i
+        JOIN item_supplier isup ON i.itemno = isup.itemno
+        JOIN supplier s ON s.supplierno = isup.supplierno
+        WHERE i.itemname = iname
+    LOOP
+        RAISE NOTICE 'Supplier: %, Rate: %',
+                     rec.suppliername, rec.rate;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT item_details('Pen');
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger before update on rate field. If difference > 2000, raise exception.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION check_rate()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF ABS(NEW.rate - OLD.rate) > 2000 THEN
+        RAISE EXCEPTION 'Rate difference greater than 2000 not allowed';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_rate
+BEFORE UPDATE ON item_supplier
+FOR EACH ROW
+EXECUTE FUNCTION check_rate();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to accept and display addition, subtraction, multiplication and division of two numbers.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE operations(a INT, b INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RAISE NOTICE 'Addition = %', a + b;
+    RAISE NOTICE 'Subtraction = %', a - b;
+    RAISE NOTICE 'Multiplication = %', a * b;
+
+    IF b = 0 THEN
+        RAISE NOTICE 'Division by zero not allowed';
+    ELSE
+        RAISE NOTICE 'Division = %', a / b;
+    END IF;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL operations(10, 5);
+
+
+---
+
+✅ 26th Slip DONE (correct numbering + complete) 💯
+
+
+---
+
+🔥 Now you have 26 properly numbered slips
+
+👉 Next = 27th slip
+(You’re almost done 🚀)
