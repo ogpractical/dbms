@@ -1,0 +1,330 @@
+Perfect 👍 here is your 25th Slip (FINAL – corrected & complete)
+
+
+---
+
+✅ 25th Slip
+
+
+---
+
+🔷 Section I: Data Structures-II [15 Marks]
+
+❓ Q1) Write a C program for the implementation of topological sort.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+
+int adj[10][10], indeg[10], n;
+
+void topo()
+{
+    int i, j, count = 0;
+
+    while(count < n)
+    {
+        for(i = 0; i < n; i++)
+        {
+            if(indeg[i] == 0)
+            {
+                printf("%d ", i);
+                indeg[i] = -1;
+
+                for(j = 0; j < n; j++)
+                {
+                    if(adj[i][j] == 1)
+                        indeg[j]--;
+                }
+                count++;
+            }
+        }
+    }
+}
+
+int main()
+{
+    int i, j;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &n);
+
+    printf("Enter adjacency matrix:\n");
+    for(i = 0; i < n; i++)
+    {
+        indeg[i] = 0;
+        for(j = 0; j < n; j++)
+        {
+            scanf("%d", &adj[i][j]);
+            if(adj[i][j] == 1)
+                indeg[j]++;
+        }
+    }
+
+    printf("Topological order:\n");
+    topo();
+
+    return 0;
+}
+
+
+---
+
+🔁 OR
+
+❓ Q1) Implement a Binary Search Tree (BST) library (btree.h) with operations – create, search, inorder, preorder and postorder. Write a menu driven program.
+
+
+---
+
+✅ Solution
+
+#include<stdio.h>
+#include<stdlib.h>
+
+struct node
+{
+    int data;
+    struct node *left, *right;
+};
+
+struct node* create(int val)
+{
+    struct node* n = (struct node*)malloc(sizeof(struct node));
+    n->data = val;
+    n->left = n->right = NULL;
+    return n;
+}
+
+struct node* insert(struct node* root, int val)
+{
+    if(root == NULL)
+        return create(val);
+
+    if(val < root->data)
+        root->left = insert(root->left, val);
+    else
+        root->right = insert(root->right, val);
+
+    return root;
+}
+
+int search(struct node* root, int key)
+{
+    if(root == NULL)
+        return 0;
+
+    if(root->data == key)
+        return 1;
+
+    if(key < root->data)
+        return search(root->left, key);
+    else
+        return search(root->right, key);
+}
+
+void inorder(struct node* root)
+{
+    if(root)
+    {
+        inorder(root->left);
+        printf("%d ", root->data);
+        inorder(root->right);
+    }
+}
+
+void preorder(struct node* root)
+{
+    if(root)
+    {
+        printf("%d ", root->data);
+        preorder(root->left);
+        preorder(root->right);
+    }
+}
+
+void postorder(struct node* root)
+{
+    if(root)
+    {
+        postorder(root->left);
+        postorder(root->right);
+        printf("%d ", root->data);
+    }
+}
+
+int main()
+{
+    struct node* root = NULL;
+    int ch, val;
+
+    while(1)
+    {
+        printf("\n1.Insert 2.Search 3.Inorder 4.Preorder 5.Postorder 6.Exit\n");
+        scanf("%d", &ch);
+
+        switch(ch)
+        {
+            case 1:
+                scanf("%d", &val);
+                root = insert(root, val);
+                break;
+            case 2:
+                scanf("%d", &val);
+                if(search(root, val))
+                    printf("Found\n");
+                else
+                    printf("Not Found\n");
+                break;
+            case 3:
+                inorder(root);
+                break;
+            case 4:
+                preorder(root);
+                break;
+            case 5:
+                postorder(root);
+                break;
+            case 6:
+                return 0;
+        }
+    }
+}
+
+
+---
+
+🔷 Section II: Database Management Systems-II [15 Marks]
+
+❓ Entities
+
+CUSTOMER (cno, cname, city)
+ACCOUNT (a_no, a_type, opening_date, balance, cno)
+
+
+---
+
+🔹 Step 1: Create Tables
+
+CREATE TABLE customer (
+    cno INT PRIMARY KEY,
+    cname VARCHAR(20),
+    city VARCHAR(20)
+);
+
+CREATE TABLE account (
+    a_no INT PRIMARY KEY,
+    a_type VARCHAR(10),
+    opening_date DATE,
+    balance MONEY,
+    cno INT,
+    FOREIGN KEY (cno) REFERENCES customer(cno)
+);
+
+
+---
+
+🔹 Q2) Write a function using cursor which accepts city name as input and prints the details of all customers in that city.
+
+
+---
+
+✅ Function
+
+CREATE OR REPLACE FUNCTION get_customers(city_name VARCHAR)
+RETURNS VOID AS
+$$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT * FROM customer
+        WHERE city = city_name
+    LOOP
+        RAISE NOTICE 'Cno: %, Name: %, City: %',
+                     rec.cno, rec.cname, rec.city;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+---
+
+✅ Call
+
+SELECT get_customers('Pune');
+
+
+---
+
+🔁 OR
+
+❓ Write a trigger which does not allow deletion of accounts of type.
+
+
+---
+
+✅ Trigger
+
+CREATE OR REPLACE FUNCTION prevent_delete()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF OLD.a_type = 'Saving' THEN
+        RAISE EXCEPTION 'Cannot delete Saving Account';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_delete
+BEFORE DELETE ON account
+FOR EACH ROW
+EXECUTE FUNCTION prevent_delete();
+
+
+---
+
+🔹 Procedure Question
+
+❓ Write a procedure to display all customers from ‘Pune’ city.
+
+
+---
+
+✅ Procedure
+
+CREATE OR REPLACE PROCEDURE customers_pune()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    rec RECORD;
+BEGIN
+    FOR rec IN
+        SELECT * FROM customer WHERE city = 'Pune'
+    LOOP
+        RAISE NOTICE 'Cno: %, Name: %, City: %',
+                     rec.cno, rec.cname, rec.city;
+    END LOOP;
+END;
+$$;
+
+
+---
+
+✅ Call
+
+CALL customers_pune();
+
+
+---
+
+✅ 25th Slip FINAL (correct numbering + complete) 💯
+
+
+---
+
+👉 Next one you send = 26th slip
